@@ -85,11 +85,13 @@ const FEEDS = {
     { url: 'https://feeds.feedburner.com/ndtvsports-latest', source: 'NDTV Sports' },
     { url: 'https://timesofindia.indiatimes.com/rss/7098551.cms', source: 'TOI Sports' },
   ],
-  // Current Affairs: English-only PIB (Lang=3 = English) + The Hindu Opinion
+  // Current Affairs: English-only sources
   currentaffairs: [
-    { url: 'https://pib.gov.in/RssMain.aspx?ModId=6&Lang=3&Regid=3', source: 'PIB India' },
+    { url: 'https://www.livemint.com/rss/politics', source: 'Livemint' },
     { url: 'https://www.thehindu.com/opinion/editorial/feeder/default.rss', source: 'The Hindu Editorial' },
     { url: 'https://www.thehindu.com/opinion/op-ed/feeder/default.rss', source: 'The Hindu Op-Ed' },
+    { url: 'https://feeds.feedburner.com/ndtvnews-india-news', source: 'NDTV India' },
+    { url: 'https://www.indiatoday.in/rss/1206577', source: 'India Today Politics' },
   ],
 };
 

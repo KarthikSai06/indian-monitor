@@ -33,6 +33,18 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Live YouTube stream resolver
+const { fetchAllLiveStreams } = require('./services/youtubeResolver');
+app.get('/api/live-streams', async (req, res) => {
+  try {
+    const channels = await fetchAllLiveStreams();
+    res.json({ channels });
+  } catch (err) {
+    console.error('[YT] Error:', err.message);
+    res.json({ channels: [] });
+  }
+});
+
 // 404 handler
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 

@@ -86,8 +86,19 @@ router.post('/chat', async (req, res) => {
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
-    res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
-    res.end();
+    console.error('[AI Chat Error]', err.message || err);
+    const msg = err.message?.includes('429')
+      ? 'API rate limited — please wait a moment and try again.'
+      : err.message?.includes('API_KEY')
+        ? 'Invalid or missing OPENROUTER_API_KEY in backend/.env'
+        : (err.message || 'AI service error');
+    // If headers already sent (streaming), send as SSE
+    if (res.headersSent) {
+      res.write(`data: ${JSON.stringify({ error: msg })}\n\n`);
+      res.end();
+    } else {
+      res.status(500).json({ error: msg });
+    }
   }
 });
 
