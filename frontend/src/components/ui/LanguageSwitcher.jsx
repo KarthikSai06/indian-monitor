@@ -14,6 +14,19 @@ const LANGUAGES = [
   { code: 'mr', flag: '🇮🇳', name: 'Marathi',    native: 'मराठी'       },
   { code: 'ml', flag: '🇮🇳', name: 'Malayalam',  native: 'മലയാളം'     },
   { code: 'pa', flag: '🇮🇳', name: 'Punjabi',    native: 'ਪੰਜਾਬੀ'     },
+  { code: 'or', flag: '🇮🇳', name: 'Odia',       native: 'ଓଡ଼ିଆ'      },
+  { code: 'as', flag: '🇮🇳', name: 'Assamese',   native: 'অসমীয়া'      },
+  { code: 'ur', flag: '🇮🇳', name: 'Urdu',       native: 'اردو'      },
+  { code: 'sa', flag: '🇮🇳', name: 'Sanskrit',   native: 'संस्कृत'      },
+  { code: 'sd', flag: '🇮🇳', name: 'Sindhi',     native: 'سنڌي'       },
+  { code: 'ks', flag: '🇮🇳', name: 'Kashmiri',   native: 'كشميري'      },
+  { code: 'ne', flag: '🇮🇳', name: 'Nepali',     native: 'नेपाली'      },
+  { code: 'kok', flag: '🇮🇳', name: 'Konkani',   native: 'कोंकणी'      },
+  { code: 'brx', flag: '🇮🇳', name: 'Bodo',      native: 'बड़ो'       },
+  { code: 'sat', flag: '🇮🇳', name: 'Santali',   native: 'ᱥᱟᱱᱛᱟᱲᱤ'      },
+  { code: 'mai', flag: '🇮🇳', name: 'Maithili',  native: 'मैथिली'      },
+  { code: 'doi', flag: '🇮🇳', name: 'Dogri',     native: 'डोगरी'      },
+  { code: 'mni', flag: '🇮🇳', name: 'Manipuri',  native: 'ꯃꯤꯇꯩꯂꯣꯟ'     },
 ];
 
 export default function LanguageSwitcher() {
