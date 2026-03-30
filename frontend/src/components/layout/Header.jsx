@@ -17,9 +17,9 @@ function IST() {
     return () => clearInterval(iv);
   }, []);
   return (
-    <div className="text-right hidden md:block">
-      <div className="font-rajdhani font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{time} IST</div>
-      <div className="font-rajdhani text-[10px] tracking-wider" style={{ color: 'var(--text-muted)' }}>{date}</div>
+    <div style={{ textAlign: 'right' }} className="hide-mobile">
+      <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>{time} IST</div>
+      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, letterSpacing: '0.12em', color: 'var(--text-muted)' }}>{date}</div>
     </div>
   );
 }
@@ -35,39 +35,46 @@ export default function Header() {
       style={{
         position: 'sticky',
         top: 0,
-        zIndex: 40,
+        zIndex: 50,
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '1rem',
-        padding: '0.6rem 1.5rem',
-        background: 'rgba(8,8,18,0.96)',
+        gap: '0.75rem',
+        padding: '0.5rem 1.25rem',
+        background: 'rgba(6,6,15,0.97)',
         backdropFilter: 'blur(24px)',
-        borderBottom: '1px solid rgba(255,102,0,0.1)',
-        boxShadow: '0 2px 20px rgba(0,0,0,0.5)',
-        minHeight: 56,
+        WebkitBackdropFilter: 'blur(24px)',
+        borderBottom: '1px solid rgba(255,102,0,0.08)',
+        boxShadow: '0 2px 20px rgba(0,0,0,0.6)',
+        minHeight: 54,
       }}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 flex-shrink-0">
-        <div className="flex flex-col gap-0.5 w-6">
-          <div className="h-1.5 rounded-full" style={{ background: 'var(--saffron)' }} />
-          <div className="h-1.5 rounded-full" style={{ background: '#fff' }} />
-          <div className="h-1.5 rounded-full" style={{ background: 'var(--green)' }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, width: 20 }}>
+          <div style={{ height: 5, borderRadius: 3, background: 'var(--saffron)' }} />
+          <div style={{ height: 5, borderRadius: 3, background: '#fff' }} />
+          <div style={{ height: 5, borderRadius: 3, background: 'var(--green)' }} />
         </div>
         <div>
-          <h1 className="font-yatra text-xl md:text-2xl leading-none" style={{ color: 'var(--saffron)', textShadow: '0 0 20px rgba(255,102,0,0.35)' }}>
+          <h1 style={{
+            fontFamily: 'var(--font-display)', fontSize: 22, lineHeight: 1, margin: 0,
+            color: 'var(--saffron)', textShadow: '0 0 24px rgba(255,102,0,0.3)',
+          }}>
             Bharat Monitor
           </h1>
-          <p className="text-[10px] font-rajdhani tracking-[0.18em] uppercase hidden sm:block" style={{ color: 'var(--text-muted)' }}>
+          <p className="hide-mobile" style={{
+            fontSize: 9, fontFamily: 'var(--font-ui)', letterSpacing: '0.2em',
+            textTransform: 'uppercase', color: 'var(--text-muted)', margin: 0, lineHeight: 1,
+          }}>
             India's Live Intelligence Hub
           </p>
         </div>
       </div>
 
-      {/* Live indicator */}
-      <div className="flex items-center gap-3 flex-1 justify-center">
+      {/* Center — Live indicator + time */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: '0 1 auto', justifyContent: 'center' }}>
         <motion.div
           className="live-badge"
           animate={{ boxShadow: ['0 0 10px rgba(239,68,68,0.4)', '0 0 20px rgba(239,68,68,0.7)', '0 0 10px rgba(239,68,68,0.4)'] }}
@@ -83,8 +90,8 @@ export default function Header() {
         <IST />
       </div>
 
-      {/* Controls — language switcher only */}
-      <div className="flex items-center gap-2 flex-shrink-0">
+      {/* Controls */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         <LanguageSwitcher />
       </div>
     </motion.header>

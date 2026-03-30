@@ -202,7 +202,7 @@ export default function AIInsights() {
             </>
           ) : (
             <div className="card p-4 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-              Configure GEMINI_API_KEY in backend .env to enable AI insights
+              Configure OPENROUTER_API_KEY in backend .env to enable AI insights
             </div>
           )}
         </div>

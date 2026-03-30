@@ -1,45 +1,44 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { OpenAI } = require('openai');
 
-let genAI;
-let model;
+let openai;
 
-function getModel() {
-  if (!model) {
-    genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+function getClient() {
+  if (!openai) {
+    openai = new OpenAI({
+      baseURL: "https://openrouter.ai/api/v1",
+      apiKey: process.env.OPENROUTER_API_KEY,
+    });
   }
-  return model;
+  return openai;
+}
+
+const MODEL_NAME = 'google/gemini-2.5-flash';
+
+async function generateWithPrompt(prompt) {
+  const client = getClient();
+  const res = await client.chat.completions.create({
+    model: MODEL_NAME,
+    max_tokens: 1500,
+    messages: [{ role: 'user', content: prompt }]
+  });
+  return res.choices[0]?.message?.content || '';
 }
 
 async function enrichArticles(articles) {
-  if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'your_gemini_api_key_here') {
-    console.warn('[AI] No valid GEMINI_API_KEY — skipping enrichment');
+  if (!process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY === 'your_openrouter_api_key_here') {
+    console.warn('[AI] No valid OPENROUTER_API_KEY — skipping enrichment');
     return articles;
   }
-
   const enriched = [...articles];
   const batchSize = 5;
-
   for (let i = 0; i < articles.length; i += batchSize) {
     const batch = articles.slice(i, i + batchSize);
-    const input = batch.map((a, idx) => ({
-      index: idx,
-      title: a.title,
-      description: a.description?.substring(0, 200),
-    }));
-
-    const prompt = `You are an Indian news enrichment AI. Analyze these articles and return a JSON array.
-For each article, return: { "index": <number>, "summary": "<2 sentence summary>", "category": "<one of: Politics|Economy|Crime|Weather|Sports|Tech|Health|Entertainment|International>", "sentiment": "<positive|negative|neutral>", "importance": <1-5>, "tags": ["tag1","tag2","tag3"] }
-Only return the raw JSON array. No markdown, no explanation.
-Articles: ${JSON.stringify(input)}`;
-
+    const input = batch.map((a, idx) => ({ index: idx, title: a.title, description: a.description?.substring(0, 200) }));
+    const prompt = `You are an Indian news enrichment AI. Analyze these articles and return a JSON array.\nFor each article, return: { "index": <number>, "summary": "<2 sentence summary>", "category": "<one of: Politics|Economy|Crime|Weather|Sports|Tech|Health|Entertainment|International>", "sentiment": "<positive|negative|neutral>", "importance": <1-5>, "tags": ["tag1","tag2","tag3"] }\nOnly return the raw JSON array. No markdown, no explanation.\nArticles: ${JSON.stringify(input)}`;
     try {
-      const m = getModel();
-      const result = await m.generateContent(prompt);
-      const text = result.response.text().trim();
+      const text = (await generateWithPrompt(prompt)).trim();
       const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      const enrichments = JSON.parse(jsonStr);
-
+      const enrichments = JSON.parse(jsonStr || '[]');
       for (const e of enrichments) {
         const idx = i + e.index;
         if (enriched[idx]) {
@@ -57,31 +56,22 @@ Articles: ${JSON.stringify(input)}`;
       console.error(`[AI] Enrichment batch ${i / batchSize + 1} failed:`, err.message);
     }
   }
-
   return enriched;
 }
 
 async function translateText(text, targetLang) {
-  const m = getModel();
-  const langNames = {
-    hi: 'Hindi', ta: 'Tamil', te: 'Telugu', kn: 'Kannada',
-    bn: 'Bengali', gu: 'Gujarati', mr: 'Marathi', ml: 'Malayalam', pa: 'Punjabi',
-  };
+  const langNames = { hi: 'Hindi', ta: 'Tamil', te: 'Telugu', kn: 'Kannada', bn: 'Bengali', gu: 'Gujarati', mr: 'Marathi', ml: 'Malayalam', pa: 'Punjabi' };
   const langName = langNames[targetLang] || 'Hindi';
   const prompt = `Translate the following Indian news text to ${langName}. Return ONLY the translated text, no explanations:\n\n${text}`;
-  const result = await m.generateContent(prompt);
-  return result.response.text().trim();
+  return (await generateWithPrompt(prompt)).trim();
 }
 
 async function generateWeatherSummary(city, weatherData) {
-  const m = getModel();
   const prompt = `You are a friendly Indian weather reporter. Write a 3-sentence AI forecast summary for ${city} based on this data: ${JSON.stringify(weatherData)}. Be conversational, mention how residents should prepare, and include a local touch. Return only the summary text.`;
-  const result = await m.generateContent(prompt);
-  return result.response.text().trim();
+  return (await generateWithPrompt(prompt)).trim();
 }
 
 async function generateInsights(articles) {
-  const m = getModel();
   const titles = articles.slice(0, 20).map(a => a.title);
   const prompt = `Analyze these Indian news headlines and return a JSON object with:
 {
@@ -92,33 +82,41 @@ async function generateInsights(articles) {
 }
 Headlines: ${JSON.stringify(titles)}
 Return only the raw JSON.`;
-  const result = await m.generateContent(prompt);
-  const text = result.response.text().trim().replace(/```json\n?/g, '').replace(/```\n?/g, '');
-  return JSON.parse(text);
+  const text = (await generateWithPrompt(prompt)).trim().replace(/```json\n?/g, '').replace(/```\n?/g, '');
+  return JSON.parse(text || '{}');
 }
 
 async function chatWithGemini(messages) {
-  const m = getModel();
-  const chat = m.startChat({
-    history: messages.slice(0, -1).map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content }],
-    })),
-    generationConfig: { maxOutputTokens: 1000 },
-    systemInstruction: 'You are Bharat AI, an expert on Indian news, politics, culture, economy, and current affairs. Answer concisely and helpfully.',
+  const client = getClient();
+  const systemInstruction = 'You are Bharat AI, an expert on Indian news, politics, culture, economy, and current affairs. Answer concisely and helpfully. Respond in the same language the user writes in.';
+  
+  const openAIMessages = [
+    { role: 'system', content: systemInstruction },
+    ...messages
+  ];
+
+  const stream = await client.chat.completions.create({
+    model: MODEL_NAME,
+    max_tokens: 1000,
+    messages: openAIMessages,
+    stream: true,
   });
-  const lastMsg = messages[messages.length - 1];
-  const result = await m.generateContentStream(lastMsg.content);
-  return result.stream;
+
+  async function* wrapStream() {
+    for await (const chunk of stream) {
+      const text = chunk.choices[0]?.delta?.content || '';
+      if (text) yield { text: () => text };
+    }
+  }
+
+  return wrapStream();
 }
 
 async function generateIncidents(articles) {
-  if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'your_gemini_api_key_here') {
+  if (!process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY === 'your_openrouter_api_key_here') {
     return [];
   }
-  const m = getModel();
   const titles = articles.slice(0, 40).map(a => `${a.title} [${a.source}]`).join('\n');
-
   const prompt = `You are an India incident monitoring AI. Analyze these live Indian news headlines and extract real geographic incidents happening right now in India.
 
 For each significant incident (protests, floods, accidents, cyclones, strikes, events, disasters), return a JSON array of objects:
@@ -148,11 +146,8 @@ Headlines:
 ${titles}`;
 
   try {
-    const result = await m.generateContent(prompt);
-    const text = result.response.text().trim()
-      .replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const incidents = JSON.parse(text);
-    // Validate and sanitize
+    const text = (await generateWithPrompt(prompt)).trim().replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    const incidents = JSON.parse(text || '[]');
     return incidents
       .filter(inc => inc.lat >= 8 && inc.lat <= 37 && inc.lng >= 68 && inc.lng <= 97.5)
       .map((inc, i) => ({

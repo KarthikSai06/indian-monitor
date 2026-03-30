@@ -18,9 +18,12 @@ export const translateText = (text, targetLang) =>
   api.post('/ai/translate', { text, targetLang }).then(r => r.data);
 
 export const fetchInsights = () =>
-  api.post('/ai/insights').then(r => r.data);
+  api.get('/ai/insights').then(r => r.data);
 
 export const fetchWeatherSummary = (city, weatherData) =>
   api.post('/ai/weather-summary', { city, weatherData }).then(r => r.data);
+
+export const fetchLiveStreams = () =>
+  api.get('/live-streams').then(r => r.data);
 
 export default api;
