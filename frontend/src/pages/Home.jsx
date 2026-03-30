@@ -2,8 +2,6 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapContainer, TileLayer, CircleMarker, Popup, GeoJSON } from 'react-leaflet';
 import { useQuery } from '@tanstack/react-query';
-import { fetchLiveStreams } from '../lib/api';
-
 const pv = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
 
 // ─── Static fallback incidents ──────────────────────────────────────────────
@@ -87,52 +85,6 @@ const FESTIVALS = [
   { state: 'Jammu & Kashmir',  festival: 'Hemis Festival',       month: 'Jun',  emoji: '🎭', color: '#dfe6e9',  desc: 'Masked Cham dance at Hemis Monastery celebrating Guru Padmasambhava.' },
 ];
 
-// ─── Live News Channels — Organized by Region/State ─────────────────────────
-const LIVE_CHANNELS = [
-  // National (Hindi/English)
-  { name: 'NDTV 24x7',      state: 'National',       lang: 'English', channelId: 'UCZFMm1mMw0F81Z37aaEzTUA', icon: '📡', color: '#FF6600' },
-  { name: 'India Today',    state: 'National',       lang: 'English', channelId: 'UCYPvAwZP8pZhSMW8qs7cVCw', icon: '🔴', color: '#cc0000' },
-  { name: 'WION',           state: 'National',       lang: 'English', channelId: 'UC_gUM8rL-Lrg6O3adPW9K1g', icon: '🌍', color: '#1a88e0' },
-  { name: 'Republic TV',    state: 'National',       lang: 'English', channelId: 'UCkAMwGxGDRHEFe-LIeOfDLA', icon: '🎙️', color: '#0d47a1' },
-  { name: 'DD News',        state: 'National',       lang: 'Hindi',   channelId: 'UCVnJr-6Wh-g0lyX3EqVz7BA', icon: '🏛️', color: '#138808' },
-  { name: 'Aaj Tak',        state: 'National',       lang: 'Hindi',   channelId: 'UCt4t-jeY85JegMlZ-E5UWtA', icon: '📺', color: '#FF9933' },
-  { name: 'ABP News',       state: 'National',       lang: 'Hindi',   channelId: 'UCRWFSbif-RFENbBrSiez1DA', icon: '📰', color: '#b71c1c' },
-  { name: 'Zee News',       state: 'National',       lang: 'Hindi',   channelId: 'UCIvaYmXn910QMdemBG3v1pQ', icon: '📡', color: '#1565c0' },
-  // Karnataka
-  { name: 'TV9 Kannada',    state: 'Karnataka',      lang: 'Kannada', channelId: 'UCkecGLDaMmhDvMM6AD4VbpQ', icon: '📺', color: '#e65100' },
-  { name: 'Public TV',      state: 'Karnataka',      lang: 'Kannada', channelId: 'UCkU73c_kHMSHN8sTbKyXp5w', icon: '📡', color: '#f57f17' },
-  // Tamil Nadu
-  { name: 'Thanthi TV',     state: 'Tamil Nadu',     lang: 'Tamil',   channelId: 'UCCWgiYfOqoaJy2ABIdLzzOQ', icon: '📺', color: '#d50000' },
-  { name: 'Sun News',       state: 'Tamil Nadu',     lang: 'Tamil',   channelId: 'UCYlh_lBEBJKIH8kNCCl7KfQ', icon: '☀️', color: '#ff6f00' },
-  // Kerala
-  { name: 'Asianet News',   state: 'Kerala',         lang: 'Malayalam',channelId: 'UCzSzWJ69Ky90GASK7D5PzvA', icon: '📺', color: '#00695c' },
-  { name: 'Manorama News',  state: 'Kerala',         lang: 'Malayalam',channelId: 'UCkScLRiaJZdKWaPlE35o9YA', icon: '📰', color: '#1b5e20' },
-  // Telangana / Andhra Pradesh
-  { name: 'TV9 Telugu',     state: 'Telangana',      lang: 'Telugu',  channelId: 'UCRPTqUWRFWjw0BDVT6RXbVQ', icon: '📺', color: '#4a148c' },
-  { name: 'NTV Telugu',     state: 'Andhra Pradesh', lang: 'Telugu',  channelId: 'UCumRDQMFgv4A-sMA5bOXVlA', icon: '📡', color: '#6a1b9a' },
-  // West Bengal
-  { name: 'ABP Ananda',     state: 'West Bengal',    lang: 'Bengali', channelId: 'UC0drqDJbsVhoQ8bWMsFZNZQ', icon: '📺', color: '#283593' },
-  // Gujarat
-  { name: 'TV9 Gujarati',   state: 'Gujarat',        lang: 'Gujarati',channelId: 'UCEnkXgHGSbKgFHnhHxMR21w', icon: '📺', color: '#ef6c00' },
-  // Maharashtra
-  { name: 'ABP Majha',      state: 'Maharashtra',    lang: 'Marathi', channelId: 'UC4fPMi8WU8l1CQy79oiDaNA', icon: '📺', color: '#c62828' },
-  // Punjab
-  { name: 'PTC News',       state: 'Punjab',         lang: 'Punjabi', channelId: 'UCtN45-LiLm37D8yGIW9ITtQ', icon: '📺', color: '#f9a825' },
-  // Rajasthan
-  { name: 'First India',    state: 'Rajasthan',      lang: 'Hindi',   channelId: 'UC-FMz1wnOkfENP1xSaFrJqg', icon: '📰', color: '#e65100' },
-  // Bihar
-  { name: 'News4 Bihar',    state: 'Bihar',          lang: 'Hindi',   channelId: 'UC82Np6FWNkQ1S54B2T4S9ug', icon: '📡', color: '#4e342e' },
-  // Assam
-  { name: 'Pratidin Time',  state: 'Assam',          lang: 'Assamese',channelId: 'UCMH5viUawXD0vWfMFiWsorg', icon: '📺', color: '#2e7d32' },
-  // Odisha
-  { name: 'OTV News',       state: 'Odisha',         lang: 'Odia',    channelId: 'UCAKLq5vOGq8UL3VosFyPbHQ', icon: '📡', color: '#0277bd' },
-  // Uttar Pradesh
-  { name: 'News24 UP',      state: 'Uttar Pradesh',  lang: 'Hindi',   channelId: 'UCwqusr8YDwM-0mFEHQdOcYA', icon: '📺', color: '#ad1457' },
-];
-
-const ALL_STATES_LIST = ['All States', 'National', ...new Set(LIVE_CHANNELS.filter(c => c.state !== 'National').map(c => c.state))].sort((a, b) =>
-  a === 'All States' ? -1 : b === 'All States' ? 1 : a === 'National' ? -1 : b === 'National' ? 1 : a.localeCompare(b)
-);
 
 // ─── Hooks ──────────────────────────────────────────────────────────────────
 function useIsMobile(bp = 1024) {
@@ -224,100 +176,6 @@ function FestivalCard({ f, index }) {
   );
 }
 
-// ─── Webcam Embed — uses dynamic video ID from backend API ──────────────────
-function WebcamCard({ channel }) {
-  const hasVideo = !!channel.embedUrl;
-  const ytLink = channel.ytLink || `https://www.youtube.com/@${channel.handle}/live`;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 14 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      whileHover={{ scale: 1.015 }}
-      className="card"
-      style={{ overflow: 'hidden', padding: 0 }}
-    >
-      <div style={{ position: 'relative', aspectRatio: '16/9', background: '#000' }}>
-        {hasVideo ? (
-          <iframe
-            src={channel.embedUrl}
-            title={channel.name}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-            style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-            loading="lazy"
-          />
-        ) : (
-          <a href={ytLink} target="_blank" rel="noopener noreferrer"
-            style={{
-              position: 'absolute', inset: 0, textDecoration: 'none',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              background: `linear-gradient(135deg, ${channel.color}18, rgba(0,0,0,0.95))`,
-            }}>
-            <div style={{
-              fontSize: 36, marginBottom: 8,
-              width: 60, height: 60, borderRadius: '50%',
-              background: `${channel.color}25`, border: `2px solid ${channel.color}40`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              {channel.icon || '📺'}
-            </div>
-            <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 14, color: channel.color, marginBottom: 4 }}>
-              {channel.name}
-            </div>
-            <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: '#9090b0', marginBottom: 8 }}>
-              Not streaming right now
-            </div>
-            <div style={{
-              fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 11,
-              padding: '5px 14px', borderRadius: 8,
-              background: 'rgba(255,0,0,0.8)', color: 'white',
-              display: 'flex', alignItems: 'center', gap: 5,
-            }}>
-              ▶ Watch on YouTube
-            </div>
-          </a>
-        )}
-        {/* Top badges */}
-        <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', alignItems: 'center', gap: 6, pointerEvents: 'none', zIndex: 3 }}>
-          {channel.isLive && (
-            <motion.div className="live-badge" animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
-              <span className="live-dot" /> LIVE
-            </motion.div>
-          )}
-          <span style={{
-            fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'white', fontSize: 10,
-            padding: '2px 8px', borderRadius: 6, background: 'rgba(0,0,0,0.7)',
-            backdropFilter: 'blur(4px)',
-          }}>
-            📍 {channel.state}
-          </span>
-        </div>
-      </div>
-      <div style={{
-        padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8,
-        borderTop: '1px solid rgba(255,102,0,0.06)',
-      }}>
-        <span style={{ fontSize: 14 }}>{channel.icon || '📺'}</span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 12, color: 'var(--text-primary)' }}>{channel.name}</div>
-          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 9, color: 'var(--text-muted)' }}>{channel.lang} · {channel.isLive ? '🟢 LIVE NOW' : '24/7'}</div>
-        </div>
-        <a href={ytLink} target="_blank" rel="noopener noreferrer" style={{
-          fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 8, letterSpacing: '0.06em',
-          padding: '3px 8px', borderRadius: 100, textDecoration: 'none',
-          background: `${channel.color}15`, color: channel.color,
-          border: `1px solid ${channel.color}30`,
-          display: 'flex', alignItems: 'center', gap: 3,
-          transition: 'all 0.15s',
-        }}>
-          ▶ {channel.state}
-        </a>
-      </div>
-    </motion.div>
-  );
-}
 
 // ─── AI Mini Widget ─────────────────────────────────────────────────────────
 const QUICK_PROMPTS = [
@@ -535,7 +393,6 @@ function AIWidget() {
 // ─── Main Home Page ────────────────────────────────────────────────────────
 export default function Home() {
   const [selected, setSelected] = useState(null);
-  const [stateFilter, setStateFilter] = useState('All States');
   const [festivalSearch, setFestivalSearch] = useState('');
   const [showAllFestivals, setShowAllFestivals] = useState(false);
   const isMobile = useIsMobile();
@@ -547,26 +404,6 @@ export default function Home() {
   });
   const INCIDENTS = incData?.incidents?.length > 0 ? incData.incidents : STATIC_INCIDENTS;
   const isLive = !!(incData?.incidents?.length > 0);
-
-  // Fetch live channel data from backend (dynamic video IDs)
-  const { data: liveData, isLoading: streamsLoading } = useQuery({
-    queryKey: ['live-streams'],
-    queryFn: fetchLiveStreams,
-    staleTime: 10 * 60 * 1000, // refresh every 10 min
-    refetchInterval: 10 * 60 * 1000,
-  });
-
-  const allChannels = liveData?.channels || [];
-  const statesList = useMemo(() => {
-    const states = new Set(allChannels.map(c => c.state));
-    return ['All States', ...Array.from(states).sort((a, b) => a === 'National' ? -1 : b === 'National' ? 1 : a.localeCompare(b))];
-  }, [allChannels]);
-
-  // Filtered channels
-  const filteredChannels = useMemo(() => {
-    if (stateFilter === 'All States') return allChannels.slice(0, 8);
-    return allChannels.filter(c => c.state === stateFilter);
-  }, [stateFilter, allChannels]);
 
   // Filtered festivals
   const filteredFestivals = useMemo(() => {
@@ -737,63 +574,7 @@ export default function Home() {
         )}
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          Section 4: 📺 Live News — State-wise Filter
-         ══════════════════════════════════════════════════════════════════════ */}
-      <div className="page" style={{ paddingTop: 8 }}>
-        {/* Header + state filter */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-          <div className="section-header" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none' }}>📺 Live News Channels</div>
-          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--text-muted)' }}>
-            {streamsLoading ? '⏳ Loading…' : `${allChannels.filter(c => c.isLive).length} live · ${filteredChannels.length} shown`}
-          </span>
-          <div style={{ marginLeft: isMobile ? 0 : 'auto', flex: isMobile ? '1 1 100%' : '0 0 auto' }}>
-            <div style={{
-              display: 'flex', gap: 4, flexWrap: 'nowrap', overflowX: 'auto',
-              WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none',
-              padding: '3px', background: 'var(--bg-card2)', borderRadius: 100,
-              border: '1px solid var(--border)',
-            }}>
-              {statesList.map(s => (
-                <motion.button key={s}
-                  onClick={() => setStateFilter(s)}
-                  whileHover={{ scale: 1.05 }}
-                  style={{
-                    fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 10,
-                    padding: '4px 10px', borderRadius: 100, cursor: 'pointer',
-                    whiteSpace: 'nowrap', flexShrink: 0, border: 'none',
-                    background: stateFilter === s ? '#FF6600' : 'transparent',
-                    color: stateFilter === s ? 'white' : '#9090b0',
-                    boxShadow: stateFilter === s ? '0 3px 10px rgba(255,102,0,0.3)' : 'none',
-                    transition: 'all 0.15s',
-                  }}>
-                  {s === 'All States' ? '🇮🇳 All' : s}
-                </motion.button>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        {/* Channel grid */}
-        <AnimatePresence mode="wait">
-          <motion.div key={stateFilter}
-            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="grid-responsive-4"
-          >
-            {filteredChannels.length === 0 ? (
-              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 16px', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)' }}>
-                <div style={{ fontSize: 36, marginBottom: 8 }}>📡</div>
-                No channels available for {stateFilter}
-              </div>
-            ) : (
-              filteredChannels.map(ch => (
-                <WebcamCard key={ch.name} channel={ch} />
-              ))
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
     </motion.div>
   );
 }

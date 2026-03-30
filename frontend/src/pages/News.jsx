@@ -6,18 +6,11 @@ import { fetchNews, fetchLiveStreams } from '../lib/api';
 import NewsCard from '../components/ui/NewsCard';
 import SkeletonCard from '../components/ui/SkeletonCard';
 import TickerBar from '../components/ui/TickerBar';
+import LiveChannelsGrid from '../components/ui/LiveChannelsGrid';
 
 const pv = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
 
-// ─── Live TV Channels (channel-based embeds — auto-loads current live stream) ─
-const CHANNELS = [
-  { name: 'NDTV 24x7',    src: 'https://www.youtube.com/embed/live_stream?channel=UCZFMm1mMw0F81Z37aaEzTUA&autoplay=1&mute=1&rel=0', ytLink: 'https://www.youtube.com/channel/UCZFMm1mMw0F81Z37aaEzTUA/live', color: '#FF6600', icon: '📡' },
-  { name: 'India Today',  src: 'https://www.youtube.com/embed/live_stream?channel=UCYPvAwZP8pZhSMW8qs7cVCw&autoplay=1&mute=1&rel=0', ytLink: 'https://www.youtube.com/channel/UCYPvAwZP8pZhSMW8qs7cVCw/live', color: '#cc0000', icon: '🔴' },
-  { name: 'Republic TV',  src: 'https://www.youtube.com/embed/live_stream?channel=UCkAMwGxGDRHEFe-LIeOfDLA&autoplay=1&mute=1&rel=0', ytLink: 'https://www.youtube.com/channel/UCkAMwGxGDRHEFe-LIeOfDLA/live', color: '#1a88e0', icon: '🎙️' },
-  { name: 'DD News',      src: 'https://www.youtube.com/embed/live_stream?channel=UCVnJr-6Wh-g0lyX3EqVz7BA&autoplay=1&mute=1&rel=0', ytLink: 'https://www.youtube.com/channel/UCVnJr-6Wh-g0lyX3EqVz7BA/live', color: '#138808', icon: '🏛️' },
-  { name: 'Aaj Tak',      src: 'https://www.youtube.com/embed/live_stream?channel=UCt4t-jeY85JegMlZ-E5UWtA&autoplay=1&mute=1&rel=0', ytLink: 'https://www.youtube.com/channel/UCt4t-jeY85JegMlZ-E5UWtA/live', color: '#FF9933', icon: '📻' },
-  { name: 'ABP News',     src: 'https://www.youtube.com/embed/live_stream?channel=UCRWFSbif-RFENbBrSiez1DA&autoplay=1&mute=1&rel=0', ytLink: 'https://www.youtube.com/channel/UCRWFSbif-RFENbBrSiez1DA/live', color: '#b71c1c', icon: '📰' },
-];
+
 
 // ─── All Indian States ──────────────────────────────────────────────────────
 const ALL_STATES = [
@@ -100,116 +93,7 @@ function NewsListContainer({ articles, isLoading, isFetching, onLoadMore, hasMor
   );
 }
 
-// ─── Live TV Section (uses dynamic video IDs from backend) ───────────────────
-function LiveTV({ active, setActive, channels }) {
-  const isMobile = useIsMobile(900);
-  if (!channels || channels.length === 0) return null;
-  const ch = channels[active] || channels[0];
 
-  return (
-    <div className="page" style={{ paddingBottom: 16 }}>
-      <div className="section-header">📺 Live News TV
-        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--text-muted)', marginLeft: 10 }}>
-          {channels.filter(c => c.isLive).length} live
-        </span>
-      </div>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : '1fr 260px',
-        gap: 16,
-      }}>
-        {/* Featured player */}
-        <div className="card card-static" style={{ overflow: 'hidden', padding: 0 }}>
-          <div style={{ position: 'relative', aspectRatio: '16/9', background: '#000' }}>
-            {ch.embedUrl ? (
-              <iframe
-                src={ch.embedUrl}
-                title={ch.name}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-              />
-            ) : (
-              <div style={{
-                position: 'absolute', inset: 0,
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                background: 'rgba(6,6,15,0.95)',
-              }}>
-                <div style={{ fontSize: 48, marginBottom: 10 }}>{ch.icon || '📺'}</div>
-                <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 14, color: ch.color }}>{ch.name}</div>
-                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: '#9090b0', margin: '6px 0 10px' }}>Not streaming right now</div>
-                <a href={ch.ytLink} target="_blank" rel="noopener noreferrer" style={{
-                  fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 12, padding: '6px 16px', borderRadius: 8,
-                  background: 'rgba(255,0,0,0.85)', color: 'white', textDecoration: 'none',
-                }}>▶ Watch on YouTube</a>
-              </div>
-            )}
-            <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 8, pointerEvents: 'none' }}>
-              {ch.isLive && (
-                <motion.div className="live-badge" animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.2, repeat: Infinity }}>
-                  <span className="live-dot" /> LIVE
-                </motion.div>
-              )}
-              <span style={{
-                fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'white', fontSize: 12,
-                padding: '2px 10px', borderRadius: 6, background: 'rgba(0,0,0,0.7)',
-              }}>{ch.icon} {ch.name}</span>
-            </div>
-            {ch.ytLink && (
-              <a href={ch.ytLink} target="_blank" rel="noopener noreferrer"
-                style={{
-                  position: 'absolute', bottom: 10, right: 10,
-                  fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 11,
-                  padding: '5px 12px', borderRadius: 8, textDecoration: 'none',
-                  background: 'rgba(255,0,0,0.85)', color: 'white',
-                  display: 'flex', alignItems: 'center', gap: 5,
-                  boxShadow: '0 3px 10px rgba(0,0,0,0.5)', zIndex: 5,
-                }}>
-                ▶ YouTube
-              </a>
-            )}
-          </div>
-        </div>
-
-        {/* Channel list */}
-        <div style={{
-          display: isMobile ? 'flex' : 'flex',
-          flexDirection: isMobile ? 'row' : 'column',
-          gap: 6,
-          overflowX: isMobile ? 'auto' : 'visible',
-          WebkitOverflowScrolling: 'touch',
-          scrollbarWidth: 'none',
-          paddingBottom: isMobile ? 4 : 0,
-        }}>
-          {channels.map((c, i) => (
-            <motion.button key={c.name} onClick={() => setActive(i)} whileHover={{ x: isMobile ? 0 : 2 }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
-                borderRadius: 'var(--radius-sm)', cursor: 'pointer', textAlign: 'left',
-                background: active === i ? c.color + '15' : 'var(--glass-bg)',
-                border: `1px solid ${active === i ? c.color + '60' : 'rgba(255,102,0,0.08)'}`,
-                flex: isMobile ? '0 0 auto' : 1,
-                minWidth: isMobile ? 140 : 'auto',
-                transition: 'all 0.15s',
-              }}>
-              <span style={{ fontSize: 16, flexShrink: 0 }}>{c.icon || '📺'}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 12, color: active === i ? c.color : '#f0f0f8' }}>{c.name}</div>
-                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 9, color: '#565680' }}>{c.isLive ? '🟢 LIVE' : '24/7'}</div>
-              </div>
-              {active === i && c.isLive && (
-                <motion.div className="live-badge" animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
-                  style={{ flexShrink: 0, fontSize: 8, padding: '2px 6px' }}>
-                  <span className="live-dot" style={{ width: 4, height: 4 }} />ON
-                </motion.div>
-              )}
-            </motion.button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── State Selector ──────────────────────────────────────────────────────────
 function StateSelector({ activeState, setActiveState }) {
@@ -272,9 +156,7 @@ function StateSelector({ activeState, setActiveState }) {
   );
 }
 
-// ─── Main News Page ──────────────────────────────────────────────────────────
 export default function News() {
-  const [activeCh, setActiveCh] = useState(0);
   const [subTab, setSubTab] = useState('national');
   const [activeState, setActiveState] = useState('tamilnadu');
   const [search, setSearch] = useState('');
@@ -315,8 +197,8 @@ export default function News() {
       {/* Ticker */}
       <TickerBar items={articles.slice(0, 10)} />
 
-      {/* Live TV */}
-      <LiveTV active={activeCh} setActive={setActiveCh} channels={liveChannels} />
+      {/* Live Channels Grid from Home Page */}
+      <LiveChannelsGrid channels={liveChannels} />
 
       {/* Sub-nav bar */}
       <div style={{
@@ -348,8 +230,7 @@ export default function News() {
 
           {/* Search */}
           <div style={{ position: 'relative', marginLeft: isMobile ? 0 : 'auto', flex: isMobile ? '1 1 100%' : '0 0 auto' }}>
-            <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--text-muted)', pointerEvents: 'none' }}>🔍</span>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('common.search', 'Search news…')}
+            {/* <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('common.search', 'Search news…')}
               style={{
                 paddingLeft: 30, paddingRight: 12, paddingTop: 7, paddingBottom: 7,
                 borderRadius: 20, width: isMobile ? '100%' : 200, fontSize: 12,
@@ -360,7 +241,7 @@ export default function News() {
               }}
               onFocus={e => e.target.style.borderColor = 'rgba(255,102,0,0.3)'}
               onBlur={e => e.target.style.borderColor = 'var(--border)'}
-            />
+            /> */}
           </div>
         </div>
 
