@@ -1,0 +1,7 @@
+{
+  "nav": { "map": "Incident Map", "liveNews": "Live News", "ai": "AI Insights", "weather": "Weather", "webcams": "Webcams", "news": "News", "economy": "Economy", "currentAffairs": "Current Affairs", "entertainment": "Entertainment", "markets": "Markets" },
+  "header": { "tagline": "India's Live Intelligence Hub", "live": "LIVE", "about": "About" },
+  "onboarding": { "title": "Namaste! What would you like to monitor?", "subtitle": "Select one or more topics to personalise your Bharat Monitor experience.", "cta": "Enter Bharat Monitor →", "skip": "Skip" },
+  "common": { "loading": "Loading...", "error": "Something went wrong", "readMore": "Read More", "refresh": "Refresh", "translate": "Translate", "updatedAgo": "Updated {{time}} ago", "offline": "You are offline", "search": "Search news...", "translated": "Translated", "noArticles": "No articles found", "viewAll": "View All" },
+  "sections": { "latestNews": "Latest News", "economy": "Economy & Markets", "gdpGrowth": "GDP Growth", "converter": "Currency Converter", "trending": "Trending Topics", "aiSummary": "AI Weather Summary", "forecast7Day": "7-Day Forecast", "currentAffairs": "Current Affairs Timeline", "moviesTrending": "Trending Movies", "musicTop10": "Music Top 10", "cricketScores": "Cricket Scores", "marketOverview": "Market Overview", "stockTable": "Stock Screener", "sectorHeatmap": "Sector Heatmap", "goldPrice": "Gold Price" }
+}

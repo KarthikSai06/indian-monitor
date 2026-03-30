@@ -1,0 +1,10 @@
+{
+  "name": "bharat-monitor-backend",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js"
+  }
+}
