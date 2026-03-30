@@ -8,10 +8,10 @@ export default function Navbar() {
   const { t } = useTranslation();
 
   const TABS = [
-    { id: 'home',    path: '/',        icon: '🏠', label: t('nav.home', 'Home'),       sublabel: 'Dashboard' },
-    { id: 'news',    path: '/news',    icon: '📡', label: t('nav.news', 'News'),       sublabel: t('nav.liveNews', 'Live Feed') },
-    { id: 'economy', path: '/economy', icon: '📈', label: t('nav.economy', 'Economy'), sublabel: t('nav.markets', '& Markets') },
-    { id: 'weather', path: '/weather', icon: '⛅', label: t('nav.weather', 'Weather'), sublabel: 'India' },
+    { id: 'home', path: '/', label: t('nav.home', 'Home'), sublabel: 'Dashboard' },
+    { id: 'news', path: '/news', label: t('nav.news', 'News'), sublabel: t('nav.liveNews', 'Live Feed') },
+    { id: 'economy', path: '/economy', label: t('nav.economy', 'Economy'), sublabel: t('nav.markets', '& Markets') },
+    { id: 'weather', path: '/weather', label: t('nav.weather', 'Weather'), sublabel: 'India' },
   ];
 
   const activeId = TABS.find(t =>
