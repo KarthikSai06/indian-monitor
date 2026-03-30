@@ -60,7 +60,13 @@ async function enrichArticles(articles) {
 }
 
 async function translateText(text, targetLang) {
-  const langNames = { hi: 'Hindi', ta: 'Tamil', te: 'Telugu', kn: 'Kannada', bn: 'Bengali', gu: 'Gujarati', mr: 'Marathi', ml: 'Malayalam', pa: 'Punjabi' };
+  const langNames = {
+    hi: 'Hindi', ta: 'Tamil', te: 'Telugu', kn: 'Kannada',
+    bn: 'Bengali', gu: 'Gujarati', mr: 'Marathi', ml: 'Malayalam', pa: 'Punjabi',
+    or: 'Odia', as: 'Assamese', ur: 'Urdu', sa: 'Sanskrit', sd: 'Sindhi',
+    ks: 'Kashmiri', ne: 'Nepali', kok: 'Konkani', brx: 'Bodo', sat: 'Santali',
+    mai: 'Maithili', doi: 'Dogri', mni: 'Manipuri', en: 'English'
+  };
   const langName = langNames[targetLang] || 'Hindi';
   const prompt = `Translate the following Indian news text to ${langName}. Return ONLY the translated text, no explanations:\n\n${text}`;
   return (await generateWithPrompt(prompt)).trim();

@@ -10,30 +10,74 @@ const cache = new NodeCache({ stdTTL: 900 }); // 15-min cache
 
 // Indian News Channels — handle → metadata
 const CHANNELS = [
-  // National
-  { handle: 'NDTV',             name: 'NDTV 24x7',     state: 'National',       lang: 'English',  icon: '📡', color: '#FF6600' },
-  { handle: 'IndiaToday',       name: 'India Today',    state: 'National',       lang: 'English',  icon: '🔴', color: '#cc0000' },
-  { handle: 'republic',         name: 'Republic TV',    state: 'National',       lang: 'English',  icon: '🎙️', color: '#0d47a1' },
-  { handle: 'TimesNow',         name: 'Times Now',      state: 'National',       lang: 'English',  icon: '📺', color: '#e01a1a' },
-  { handle: 'WIONews',          name: 'WION',           state: 'National',       lang: 'English',  icon: '🌍', color: '#1a88e0' },
-  { handle: 'DDNewsOfficial',   name: 'DD News',        state: 'National',       lang: 'Hindi',    icon: '🏛️', color: '#138808' },
-  { handle: 'aabortvnews',      name: 'ABP News',       state: 'National',       lang: 'Hindi',    icon: '📰', color: '#b71c1c' },
-  { handle: 'AajTak',           name: 'Aaj Tak',        state: 'National',       lang: 'Hindi',    icon: '📻', color: '#FF9933' },
-  { handle: 'ZeeNews',          name: 'Zee News',       state: 'National',       lang: 'Hindi',    icon: '📡', color: '#1565c0' },
-  // Regional
-  { handle: 'TV9Kannada',       name: 'TV9 Kannada',    state: 'Karnataka',      lang: 'Kannada',  icon: '📺', color: '#e65100' },
-  { handle: 'PublicTVNewsKannada', name: 'Public TV',   state: 'Karnataka',      lang: 'Kannada',  icon: '📡', color: '#f57f17' },
-  { handle: 'ThanthiTV',        name: 'Thanthi TV',     state: 'Tamil Nadu',     lang: 'Tamil',    icon: '📺', color: '#d50000' },
-  { handle: 'SunNews',          name: 'Sun News',       state: 'Tamil Nadu',     lang: 'Tamil',    icon: '☀️', color: '#ff6f00' },
-  { handle: 'AsianetNewsML',    name: 'Asianet News',   state: 'Kerala',         lang: 'Malayalam',icon: '📺', color: '#00695c' },
-  { handle: 'maboramanews',     name: 'Manorama News',  state: 'Kerala',         lang: 'Malayalam',icon: '📰', color: '#1b5e20' },
-  { handle: 'TV9Telugu',        name: 'TV9 Telugu',     state: 'Telangana',      lang: 'Telugu',   icon: '📺', color: '#4a148c' },
-  { handle: 'ABPAnandaTV',      name: 'ABP Ananda',     state: 'West Bengal',    lang: 'Bengali',  icon: '📺', color: '#283593' },
-  { handle: 'TV9GujaratiOnline',name: 'TV9 Gujarati',   state: 'Gujarat',        lang: 'Gujarati', icon: '📺', color: '#ef6c00' },
-  { handle: 'ABPMajhaTV',       name: 'ABP Majha',      state: 'Maharashtra',    lang: 'Marathi',  icon: '📺', color: '#c62828' },
-  { handle: 'PTCNews',          name: 'PTC News',       state: 'Punjab',         lang: 'Punjabi',  icon: '📺', color: '#f9a825' },
-  { handle: 'OTVKhabar',        name: 'OTV News',       state: 'Odisha',         lang: 'Odia',     icon: '📡', color: '#0277bd' },
-  { handle: 'PratidinTime',     name: 'Pratidin Time',  state: 'Assam',          lang: 'Assamese', icon: '📺', color: '#2e7d32' },
+  // ─── National ───
+  { handle: 'NDTV', name: 'NDTV 24x7', state: 'National', lang: 'English', icon: '📡', color: '#FF6600' },
+  { handle: 'IndiaToday', name: 'India Today', state: 'National', lang: 'English', icon: '🔴', color: '#cc0000' },
+  { handle: 'RepublicWorld', name: 'Republic TV', state: 'National', lang: 'English', icon: '🎙️', color: '#0d47a1' },
+  { handle: 'TimesNow', name: 'Times Now', state: 'National', lang: 'English', icon: '📺', color: '#e01a1a' },
+  { handle: 'WIONews', name: 'WION', state: 'National', lang: 'English', icon: '🌍', color: '#1a88e0' },
+  { handle: 'DDnews', name: 'DD News', state: 'National', lang: 'Hindi', icon: '🏛️', color: '#138808' },
+  { handle: 'ABPNews', name: 'ABP News', state: 'National', lang: 'Hindi', icon: '📰', color: '#b71c1c' },
+  { handle: 'AajTak', name: 'Aaj Tak', state: 'National', lang: 'Hindi', icon: '📻', color: '#FF9933' },
+  { handle: 'ZeeNews', name: 'Zee News', state: 'National', lang: 'Hindi', icon: '📡', color: '#1565c0' },
+  { handle: 'News18India', name: 'News18 India', state: 'National', lang: 'Hindi', icon: '📰', color: '#e65100' },
+
+  // ─── Regional / State-wise ───
+  // Tamil Nadu
+  { handle: 'ThanthiTV', name: 'Thanthi TV', state: 'Tamil Nadu', lang: 'Tamil', icon: '📺', color: '#d50000' },
+  { handle: 'SunNews', name: 'Sun News', state: 'Tamil Nadu', lang: 'Tamil', icon: '☀️', color: '#ff6f00' },
+  { handle: 'News18TamilNadu', name: 'News18 Tamil Nadu', state: 'Tamil Nadu', lang: 'Tamil', icon: '📺', color: '#e65100' },
+
+  // Karnataka
+  { handle: 'TV9Kannada', name: 'TV9 Kannada', state: 'Karnataka', lang: 'Kannada', icon: '📺', color: '#e65100' },
+  { handle: 'NewsFirstKannada', name: 'News First Kannada', state: 'Karnataka', lang: 'Kannada', icon: '📡', color: '#f57f17' },
+  { handle: 'SuvarnaNews', name: 'Suvarna News', state: 'Karnataka', lang: 'Kannada', icon: '📡', color: '#f57f17' },
+  { handle: 'PublicTV', name: 'Public TV', state: 'Karnataka', lang: 'Kannada', icon: '📺', color: '#d32f2f' },
+
+  // Kerala
+  { handle: 'AsianetNewsML', name: 'Asianet News', state: 'Kerala', lang: 'Malayalam', icon: '📺', color: '#00695c' },
+  { handle: 'maboramanews', name: 'Manorama News', state: 'Kerala', lang: 'Malayalam', icon: '📰', color: '#1b5e20' },
+  { handle: 'News18Kerala', name: 'News18 Kerala', state: 'Kerala', lang: 'Malayalam', icon: '📺', color: '#2e7d32' },
+
+  // West Bengal
+  { handle: 'abpanandaTV', name: 'ABP Ananda', state: 'West Bengal', lang: 'Bengali', icon: '📺', color: '#283593' },
+  { handle: 'News18Bangla', name: 'News18 Bangla', state: 'West Bengal', lang: 'Bengali', icon: '📺', color: '#e65100' },
+  { handle: 'Zee24Ghanta', name: 'Zee 24 Ghanta', state: 'West Bengal', lang: 'Bengali', icon: '📺', color: '#1565c0' },
+
+  // Maharashtra
+  { handle: 'abpmajhatv', name: 'ABP Majha', state: 'Maharashtra', lang: 'Marathi', icon: '📺', color: '#c62828' },
+  { handle: 'TV9MarathiLive', name: 'TV9 Marathi', state: 'Maharashtra', lang: 'Marathi', icon: '📺', color: '#e65100' },
+  { handle: 'Zee24Taas', name: 'Zee 24 Taas', state: 'Maharashtra', lang: 'Marathi', icon: '📺', color: '#1565c0' },
+  { handle: 'News18Marathi', name: 'News18 Marathi', state: 'Maharashtra', lang: 'Marathi', icon: '📺', color: '#e65100' },
+
+  // Gujarat
+  { handle: 'TV9GujaratiNews', name: 'TV9 Gujarati', state: 'Gujarat', lang: 'Gujarati', icon: '📺', color: '#ef6c00' },
+  { handle: 'News18Gujarati', name: 'News18 Gujarati', state: 'Gujarat', lang: 'Gujarati', icon: '📺', color: '#e65100' },
+
+  // Punjab / Haryana
+  { handle: 'PTCNews', name: 'PTC News', state: 'Punjab', lang: 'Punjabi', icon: '📺', color: '#f9a825' },
+  { handle: 'News18Punjab', name: 'News18 Punjab', state: 'Punjab', lang: 'Punjabi', icon: '📺', color: '#2e7d32' },
+
+  // Uttar Pradesh
+  { handle: 'News18UP', name: 'News18 UP', state: 'Uttar Pradesh', lang: 'Hindi', icon: '📺', color: '#e65100' },
+  { handle: 'ABPNewsUP', name: 'ABP Ganga', state: 'Uttar Pradesh', lang: 'Hindi', icon: '📺', color: '#b71c1c' },
+
+  // Madhya Pradesh / Chhattisgarh
+  { handle: 'News18MPChhattisgarh', name: 'News18 MP Chhattisgarh', state: 'Madhya Pradesh', lang: 'Hindi', icon: '📺', color: '#e65100' },
+
+  // Telangana / Andhra Pradesh
+  { handle: 'TV9TeluguLive', name: 'TV9 Telugu', state: 'Telangana', lang: 'Telugu', icon: '📺', color: '#4a148c' },
+  { handle: 'ntvtelugu', name: 'NTV Telugu', state: 'Andhra Pradesh', lang: 'Telugu', icon: '📡', color: '#6a1b9a' },
+  { handle: 'abntelugutv', name: 'ABN Telugu', state: 'Andhra Pradesh', lang: 'Telugu', icon: '📺', color: '#4a148c' },
+  { handle: 'News18Telangana', name: 'News18 Telangana', state: 'Telangana', lang: 'Telugu', icon: '📺', color: '#e65100' },
+
+  // Odisha
+  { handle: 'OTVKhabar', name: 'OTV News', state: 'Odisha', lang: 'Odia', icon: '📡', color: '#0277bd' },
+  { handle: 'News18Odia', name: 'News18 Odia', state: 'Odisha', lang: 'Odia', icon: '📺', color: '#e65100' },
+
+  // Assam / North East
+  { handle: 'News18AssamNortheastLive', name: 'News18 Assam NE', state: 'Assam', lang: 'Assamese', icon: '📺', color: '#2e7d32' },
+  { handle: 'PratidinTime', name: 'Pratidin Time', state: 'Assam', lang: 'Assamese', icon: '📺', color: '#d32f2f' },
 ];
 
 /**
