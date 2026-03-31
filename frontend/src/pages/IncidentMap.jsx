@@ -36,7 +36,7 @@ export default function IncidentMap() {
         {/* Map */}
         <div className="flex-1 card overflow-hidden" style={{ minHeight: '500px' }}>
           <div className="p-3 border-b font-rajdhani font-bold text-sm" style={{ borderColor: 'var(--border)', color: 'var(--saffron)' }}>
-            🗺️ INDIA INCIDENT MAP
+            INDIA INFORMATION MAP
           </div>
           <div style={{ background: '#0d1117' }}>
             <ComposableMap

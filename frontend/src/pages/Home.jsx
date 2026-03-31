@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 const nuclearIcon = L.divIcon({
   className: '',
   iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -16],
-  html: `<div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 6px #00cec9);">
+  html: `<div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 6px #00cec9);border-radius:50%;--pulse-color:#00cec9;animation:markerPulse 2s infinite;">
     <svg viewBox="0 0 100 100" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
       <circle cx="50" cy="50" r="12" fill="#00cec9"/>
       <path d="M50 38 A12 12 0 0 1 50 62 L28 99 A48 48 0 0 0 72 99 Z" fill="#00cec9" opacity="0.9"/>
@@ -23,7 +23,7 @@ const nuclearIcon = L.divIcon({
 const militaryIcon = L.divIcon({
   className: '',
   iconSize: [26, 26], iconAnchor: [13, 13], popupAnchor: [0, -16],
-  html: `<div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 5px #e74c3c);">
+  html: `<div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 5px #e74c3c);border-radius:50%;--pulse-color:#e74c3c;animation:markerPulse 2.5s infinite;">
     <svg viewBox="0 0 100 100" width="26" height="26" xmlns="http://www.w3.org/2000/svg">
       <polygon points="50,5 61,35 95,35 68,57 79,91 50,70 21,91 32,57 5,35 39,35" fill="#e74c3c" stroke="#ff6b6b" stroke-width="2"/>
     </svg>
@@ -33,8 +33,16 @@ const militaryIcon = L.divIcon({
 const monumentIcon = L.divIcon({
   className: '',
   iconSize: [22, 22], iconAnchor: [11, 11], popupAnchor: [0, -14],
-  html: `<div style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 5px #f1c40f);font-size:18px;line-height:1;">🏛</div>`,
+  html: `<div style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 5px #f1c40f);font-size:18px;line-height:1;border-radius:50%;--pulse-color:#f1c40f;animation:markerPulse 2s infinite;">🏛</div>`,
 });
+
+const spaceIcon = L.divIcon({ className: '', iconSize: [22, 22], iconAnchor: [11, 11], popupAnchor: [0, -14], html: `<div style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 5px #8b5cf6);font-size:18px;line-height:1;border-radius:50%;--pulse-color:#8b5cf6;animation:markerPulse 2s infinite;">🚀</div>` });
+const parkIcon = L.divIcon({ className: '', iconSize: [22, 22], iconAnchor: [11, 11], popupAnchor: [0, -14], html: `<div style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 5px #10b981);font-size:18px;line-height:1;border-radius:50%;--pulse-color:#10b981;animation:markerPulse 2.5s infinite;">🐅</div>` });
+const infraIcon = L.divIcon({ className: '', iconSize: [22, 22], iconAnchor: [11, 11], popupAnchor: [0, -14], html: `<div style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 5px #f97316);font-size:18px;line-height:1;border-radius:50%;--pulse-color:#f97316;animation:markerPulse 1.8s infinite;">⚡</div>` });
+const portIcon = L.divIcon({ className: '', iconSize: [22, 22], iconAnchor: [11, 11], popupAnchor: [0, -14], html: `<div style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 5px #3b82f6);font-size:18px;line-height:1;border-radius:50%;--pulse-color:#3b82f6;animation:markerPulse 2s infinite;">🚢</div>` });
+const techIcon = L.divIcon({ className: '', iconSize: [22, 22], iconAnchor: [11, 11], popupAnchor: [0, -14], html: `<div style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 5px #ec4899);font-size:18px;line-height:1;border-radius:50%;--pulse-color:#ec4899;animation:markerPulse 2.2s infinite;">🏭</div>` });
+const airportIcon = L.divIcon({ className: '', iconSize: [22, 22], iconAnchor: [11, 11], popupAnchor: [0, -14], html: `<div style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 5px #6366f1);font-size:18px;line-height:1;border-radius:50%;--pulse-color:#6366f1;animation:markerPulse 3s infinite;">✈️</div>` });
+
 
 const pv = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
 
@@ -209,24 +217,88 @@ const MONUMENTS = [
   { id: 3, name: 'Qutub Minar',        pos: [28.524, 77.185], desc: 'UNESCO World Heritage minaret.' },
   { id: 4, name: 'Gateway of India',   pos: [18.922, 72.835], desc: 'Iconic arch monument in Mumbai.' },
   { id: 5, name: 'Charminar',          pos: [17.361, 78.474], desc: 'Historic mosque and monument in Hyderabad.' },
+  { id: 6, name: 'Hawa Mahal',         pos: [26.923, 75.826], desc: 'Palace of Winds in Jaipur, Rajasthan.' },
+  { id: 7, name: 'Victoria Memorial',  pos: [22.544, 88.342], desc: 'Large marble building in Kolkata.' },
+  { id: 8, name: 'Mysore Palace',      pos: [12.305, 76.655], desc: 'Historical royal residence in Karnataka.' },
+  { id: 9, name: 'Meenakshi Temple',   pos: [9.919, 78.119],  desc: 'Historic Hindu temple in Madurai.' },
+  { id: 10, name: 'Golden Temple',     pos: [31.620, 74.876], desc: 'Holiest Gurdwara of Sikhism in Amritsar.' },
+  { id: 11, name: 'Sun Temple',        pos: [19.887, 86.094], desc: '13th-century temple in Konark, Odisha.' },
+  { id: 12, name: 'Sanchi Stupa',      pos: [23.479, 77.739], desc: 'Buddhist complex in Madhya Pradesh.' },
+  { id: 13, name: 'Hampi',             pos: [15.335, 76.460], desc: 'Ancient village ruins in Karnataka.' }
 ];
 const MILITARY_BASES = [
-  { id: 1, name: 'Ambala Air Base',  pos: [30.368, 76.816], desc: 'IAF strike corps base, home to Rafale jets.' },
-  { id: 2, name: 'INS Karwar',       pos: [14.80,  74.13 ], desc: "Indian Navy's largest western seaboard base." },
-  { id: 3, name: 'Fort William',     pos: [22.556, 88.343], desc: 'Headquarters of Eastern Command, Army.' },
-  { id: 4, name: 'Jodhpur Air Base', pos: [26.251, 73.048], desc: 'Strategic IAF base in Rajasthan.' },
+  { id: 1, name: 'Ambala Air Base',     pos: [30.368, 76.816], desc: 'IAF strike corps base, home to Rafale jets.' },
+  { id: 2, name: 'INS Karwar',          pos: [14.80,  74.13 ], desc: "Indian Navy's largest western seaboard base." },
+  { id: 3, name: 'Fort William',        pos: [22.556, 88.343], desc: 'Headquarters of Eastern Command, Army.' },
+  { id: 4, name: 'Jodhpur Air Base',    pos: [26.251, 73.048], desc: 'Strategic IAF base in Rajasthan.' },
+  { id: 5, name: 'Eastern Naval Cmd',   pos: [17.686, 83.218], desc: 'Naval headquarters in Visakhapatnam.' },
+  { id: 6, name: 'Southern Naval Cmd',  pos: [9.963,  76.271], desc: 'Training command of Indian Navy in Kochi.' },
+  { id: 7, name: 'Hindon Air Station',  pos: [28.707, 77.355], desc: 'Eighth largest airbase in the world, Ghaziabad.' },
+  { id: 8, name: 'Southern Command HQ', pos: [18.501, 73.880], desc: 'Indian Army command in Pune.' },
+  { id: 9, name: 'Northern Command',    pos: [32.926, 75.141], desc: 'Army command stationed in Udhampur (J&K).' },
+  { id: 10, name: 'Tezpur Air Base',    pos: [26.631, 92.784], desc: 'Forward airbase in Assam.' }
 ];
 const NUCLEAR_SITES = [
-  { id: 1, name: 'Tarapur TAPS',     pos: [19.833, 72.717], desc: "India's first nuclear power station." },
-  { id: 2, name: 'Kudankulam NPP',   pos: [8.168,  77.706], desc: 'Russia-built reactor in Tamil Nadu.' },
-  { id: 3, name: 'Rawatbhata RAPS',  pos: [24.867, 75.583], desc: 'NPCIL nuclear plant in Rajasthan.' },
-  { id: 4, name: 'Kaiga NPP',        pos: [14.862, 74.449], desc: 'Nuclear power plant in Karnataka.' },
+  { id: 1, name: 'Tarapur TAPS',        pos: [19.833, 72.717], desc: "India's first nuclear power station." },
+  { id: 2, name: 'Kudankulam NPP',      pos: [8.168,  77.706], desc: 'Russia-built reactor in Tamil Nadu.' },
+  { id: 3, name: 'Rawatbhata RAPS',     pos: [24.867, 75.583], desc: 'NPCIL nuclear plant in Rajasthan.' },
+  { id: 4, name: 'Kaiga NPP',           pos: [14.862, 74.449], desc: 'Nuclear power plant in Karnataka.' },
+  { id: 5, name: 'Kakrapar Aps',        pos: [21.236, 73.349], desc: 'Atomic power station in Gujarat.' },
+  { id: 6, name: 'Kalpakkam Madras',    pos: [12.557, 80.174], desc: 'Comprehensive nuclear facility in TN.' },
+  { id: 7, name: 'Narora Aps',          pos: [28.156, 78.384], desc: 'Nuclear power station in Uttar Pradesh.' },
+  { id: 8, name: 'Gorakhpur NPP',       pos: [29.431, 75.645], desc: 'Upcoming nuclear power plant in Haryana.' },
+  { id: 9, name: 'BARC Trombay',        pos: [19.006, 72.915], desc: "India's premier nuclear research facility." }
+];
+const SPACE_RESEARCH = [
+  { id: 1, name: 'ISRO SDSC',      pos: [13.720, 80.230], desc: 'Satish Dhawan Space Centre, Sriharikota.' },
+  { id: 2, name: 'ISRO VSSC',      pos: [8.532,  76.864], desc: 'Vikram Sarabhai Space Centre, Kerala.' },
+  { id: 3, name: 'IDSN node',      pos: [12.721, 77.382], desc: 'Indian Deep Space Network near Bengaluru.' },
+  { id: 4, name: 'ISRO SAC',       pos: [23.018, 72.511], desc: 'Space Applications Centre, Ahmedabad.' }
+];
+const NATIONAL_PARKS = [
+  { id: 1, name: 'Kaziranga',      pos: [26.577, 93.171], desc: 'Famed for the Great Indian One-Horned Rhinoceros.' },
+  { id: 2, name: 'Jim Corbett',    pos: [29.530, 78.774], desc: 'Oldest national park in India, Uttarakhand.' },
+  { id: 3, name: 'Ranthambore',    pos: [26.017, 76.502], desc: 'Major wildlife tourist attraction in Rajasthan.' },
+  { id: 4, name: 'Sundarbans',     pos: [21.949, 88.880], desc: 'Mangrove area in the delta, tiger reserve.' },
+  { id: 5, name: 'Kanha',          pos: [22.334, 80.611], desc: 'Vast tiger reserve in Madhya Pradesh.' }
+];
+const MEGA_INFRA = [
+  { id: 1, name: 'Bhadla Solar',   pos: [27.538, 71.916], desc: "World's largest solar park in Rajasthan." },
+  { id: 2, name: 'Chenab Bridge',  pos: [33.150, 74.881], desc: "World's highest railway bridge in J&K." },
+  { id: 3, name: 'Tehri Dam',      pos: [30.378, 78.480], desc: 'Tallest dam in India, Uttarakhand.' },
+  { id: 4, name: 'BWSL Mumbai',    pos: [19.035, 72.816], desc: 'Cable-stayed bridge in Mumbai.' },
+  { id: 5, name: 'Atal Tunnel',    pos: [32.361, 77.194], desc: 'Longest highway single-tube tunnel above 10,000 feet.' }
+];
+const SEAPORTS = [
+  { id: 1, name: 'Nhava Sheva',    pos: [18.949, 72.951], desc: 'Largest container port in India, Navi Mumbai.' },
+  { id: 2, name: 'Mundra Port',    pos: [22.738, 69.704], desc: 'Largest private port in India, Gujarat.' },
+  { id: 3, name: 'Chennai Port',   pos: [13.084, 80.297], desc: 'Second largest container port in India.' },
+  { id: 4, name: 'Visakhapatnam',  pos: [17.697, 83.284], desc: 'Major port on the Eastern coast.' },
+  { id: 5, name: 'Kochi Port',     pos: [9.963,  76.264], desc: 'Major port on the Arabian Sea/Indian Ocean.' }
+];
+const TECH_HUBS = [
+  { id: 1, name: 'GIFT City',      pos: [23.160, 72.684], desc: 'Smart city and financial hub in Gujarat.' },
+  { id: 2, name: 'Electronic City',pos: [12.845, 77.660], desc: 'Major IT hub in Bengaluru.' },
+  { id: 3, name: 'HITEC City',     pos: [17.447, 78.376], desc: 'Technology, Engineering, and Health hub in Hyderabad.' },
+  { id: 4, name: 'Bandra Kurla',   pos: [19.066, 72.865], desc: 'Commercial and financial center in Mumbai.' },
+  { id: 5, name: 'Cyber City',     pos: [28.490, 77.088], desc: 'Major corporate park in Gurugram.' }
+];
+const AIRPORTS = [
+  { id: 1, name: 'IGI Airport',    pos: [28.556, 77.100], desc: 'Primary international airport of Delhi.' },
+  { id: 2, name: 'CSMIA Mumbai',   pos: [19.089, 72.865], desc: 'Chhatrapati Shivaji Maharaj International Airport.' },
+  { id: 3, name: 'KIA Bengaluru',  pos: [13.198, 77.706], desc: 'Kempegowda International Airport.' },
+  { id: 4, name: 'RGI Hyderabad',  pos: [17.240, 78.429], desc: 'Rajiv Gandhi International Airport.' },
+  { id: 5, name: 'CCU Kolkata',    pos: [22.652, 88.446], desc: 'Netaji Subhas Chandra Bose Airport.' }
 ];
 
 // ─── Main Home Page ────────────────────────────────────────────────────────
 export default function Home() {
   const [selected, setSelected] = useState(null);
-  const [layers, setLayers] = useState({ monuments: false, military: false, nuclear: false });
+  const [layers, setLayers] = useState({ 
+    monuments: true, military: true, nuclear: true, 
+    space: true, parks: true, infra: true, 
+    ports: true, tech: true, airports: true 
+  });
   const isMobile = useIsMobile();
   const { t } = useTranslation();
 
@@ -263,7 +335,7 @@ export default function Home() {
           {/* India Map */}
           <div className="card card-static" style={{ overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255,102,0,0.08)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span className="section-header" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none' }}>🗺️ {t('sections.incidentMap', 'India Incident Map')}</span>
+              <span className="section-header" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none', letterSpacing: '0.05em', color: '#f0f0f8' }}>🗺️ {t('sections.incidentMap', 'India Info Map')}</span>
               {isLive && (
                 <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
                   style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 8, letterSpacing: '0.1em', padding: '2px 8px', borderRadius: 100, background: 'rgba(255,102,0,0.12)', border: '1px solid rgba(255,102,0,0.25)', color: '#FF9933' }}>
@@ -279,8 +351,14 @@ export default function Home() {
             <div style={{ display: 'flex', gap: 8, padding: '8px 16px', background: 'rgba(0,0,0,0.2)', flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
               {[
                 { key: 'monuments', label: '🏛 Monuments',     color: '#f1c40f' },
-                { key: 'military',  label: '⚔️ Military Bases', color: '#e74c3c' },
-                { key: 'nuclear',   label: '☢️ Nuclear Sites',   color: '#00cec9' },
+                { key: 'space',     label: '🚀 Space & R&D',   color: '#8b5cf6' },
+                { key: 'military',  label: '⚔️ Military',      color: '#e74c3c' },
+                { key: 'nuclear',   label: '☢️ Nuclear Sites', color: '#00cec9' },
+                { key: 'parks',     label: '🐅 National Parks',color: '#10b981' },
+                { key: 'infra',     label: '⚡ Mega Infra',    color: '#f97316' },
+                { key: 'ports',     label: '🚢 Major Ports',   color: '#3b82f6' },
+                { key: 'tech',      label: '🏭 Tech Hubs',     color: '#ec4899' },
+                { key: 'airports',  label: '✈️ Airports',      color: '#6366f1' },
               ].map(({ key, label, color }) => (
                 <motion.button key={key} onClick={() => toggleLayer(key)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                   style={{ padding: '4px 12px', borderRadius: 100, border: `1px solid ${layers[key] ? color : 'rgba(255,255,255,0.1)'}`, background: layers[key] ? `${color}22` : 'transparent', color: layers[key] ? color : '#9090b0', fontSize: 10, fontFamily: 'var(--font-ui)', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
@@ -289,7 +367,8 @@ export default function Home() {
               ))}
             </div>
 
-            <div style={{ height: isMobile ? 300 : 440, width: '100%' }}>
+            <div style={{ height: isMobile ? 300 : 440, width: '100%', position: 'relative', overflow: 'hidden' }}>
+              <div className="radar-overlay-container"><div className="radar-sweep" /></div>
               <MapContainer center={[22.0, 80.0]} zoom={5} style={{ height: '100%', width: '100%' }}
                 minZoom={4} maxZoom={10} zoomControl attributionControl={false}
                 whenReady={(m) => setTimeout(() => m.target.invalidateSize(), 100)}>
@@ -297,8 +376,9 @@ export default function Home() {
 
                 {INCIDENTS.map(inc => (
                   <CircleMarker key={inc.id} center={inc.pos} radius={10}
-                    pathOptions={{ color: TYPE[inc.type], fillColor: TYPE[inc.type], fillOpacity: 0.85, weight: 2 }}
+                    pathOptions={{ className: `pulse-svg-${inc.type}`, color: TYPE[inc.type], fillColor: TYPE[inc.type], fillOpacity: 0.85, weight: 2 }}
                     eventHandlers={{ click: () => setSelected(selected?.id === inc.id ? null : inc) }}>
+
                     <Popup>
                       <div style={{ fontFamily: 'var(--font-ui)', minWidth: 180 }}>
                         <div style={{ color: TYPE[inc.type], fontWeight: 700, fontSize: 13 }}>{inc.name}</div>
@@ -310,7 +390,7 @@ export default function Home() {
 
                 {liveEvents.filter(e => e.pos && Array.isArray(e.pos) && e.pos.length === 2 && e.pos[0] !== 22.0).map((ev, i) => (
                   <CircleMarker key={`ev-${i}`} center={ev.pos} radius={14}
-                    pathOptions={{ color: ev.color, fillColor: ev.color, fillOpacity: 0.9, weight: 3, dashArray: '2 4' }}>
+                    pathOptions={{ className: 'pulse-svg-alert', color: ev.color, fillColor: ev.color, fillOpacity: 0.9, weight: 3, dashArray: '2 4' }}>
                     <Popup>
                       <div style={{ fontFamily: 'var(--font-ui)', minWidth: 200 }}>
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center', borderBottom: `1px solid ${ev.color}40`, paddingBottom: 6 }}>
@@ -336,6 +416,36 @@ export default function Home() {
                 {layers.nuclear && NUCLEAR_SITES.map(n => (
                   <Marker key={n.id} position={n.pos} icon={nuclearIcon}>
                     <Popup><div style={{ fontFamily: 'var(--font-ui)', minWidth: 180 }}><div style={{ color: '#00cec9', fontWeight: 700, fontSize: 13 }}>☢️ {n.name}</div><div style={{ color: '#9090b0', fontSize: 11, marginTop: 4 }}>{n.desc}</div></div></Popup>
+                  </Marker>
+                ))}
+                {layers.space && SPACE_RESEARCH.map(n => (
+                  <Marker key={n.id} position={n.pos} icon={spaceIcon}>
+                    <Popup><div style={{ fontFamily: 'var(--font-ui)', minWidth: 180 }}><div style={{ color: '#8b5cf6', fontWeight: 700, fontSize: 13 }}>🚀 {n.name}</div><div style={{ color: '#9090b0', fontSize: 11, marginTop: 4 }}>{n.desc}</div></div></Popup>
+                  </Marker>
+                ))}
+                {layers.parks && NATIONAL_PARKS.map(n => (
+                  <Marker key={n.id} position={n.pos} icon={parkIcon}>
+                    <Popup><div style={{ fontFamily: 'var(--font-ui)', minWidth: 180 }}><div style={{ color: '#10b981', fontWeight: 700, fontSize: 13 }}>🐅 {n.name}</div><div style={{ color: '#9090b0', fontSize: 11, marginTop: 4 }}>{n.desc}</div></div></Popup>
+                  </Marker>
+                ))}
+                {layers.infra && MEGA_INFRA.map(n => (
+                  <Marker key={n.id} position={n.pos} icon={infraIcon}>
+                    <Popup><div style={{ fontFamily: 'var(--font-ui)', minWidth: 180 }}><div style={{ color: '#f97316', fontWeight: 700, fontSize: 13 }}>⚡ {n.name}</div><div style={{ color: '#9090b0', fontSize: 11, marginTop: 4 }}>{n.desc}</div></div></Popup>
+                  </Marker>
+                ))}
+                {layers.ports && SEAPORTS.map(n => (
+                  <Marker key={n.id} position={n.pos} icon={portIcon}>
+                    <Popup><div style={{ fontFamily: 'var(--font-ui)', minWidth: 180 }}><div style={{ color: '#3b82f6', fontWeight: 700, fontSize: 13 }}>🚢 {n.name}</div><div style={{ color: '#9090b0', fontSize: 11, marginTop: 4 }}>{n.desc}</div></div></Popup>
+                  </Marker>
+                ))}
+                {layers.tech && TECH_HUBS.map(n => (
+                  <Marker key={n.id} position={n.pos} icon={techIcon}>
+                    <Popup><div style={{ fontFamily: 'var(--font-ui)', minWidth: 180 }}><div style={{ color: '#ec4899', fontWeight: 700, fontSize: 13 }}>🏭 {n.name}</div><div style={{ color: '#9090b0', fontSize: 11, marginTop: 4 }}>{n.desc}</div></div></Popup>
+                  </Marker>
+                ))}
+                {layers.airports && AIRPORTS.map(n => (
+                  <Marker key={n.id} position={n.pos} icon={airportIcon}>
+                    <Popup><div style={{ fontFamily: 'var(--font-ui)', minWidth: 180 }}><div style={{ color: '#6366f1', fontWeight: 700, fontSize: 13 }}>✈️ {n.name}</div><div style={{ color: '#9090b0', fontSize: 11, marginTop: 4 }}>{n.desc}</div></div></Popup>
                   </Marker>
                 ))}
               </MapContainer>
