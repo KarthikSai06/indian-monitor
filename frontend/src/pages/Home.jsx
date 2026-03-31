@@ -43,6 +43,7 @@ const monumentIcon = L.divIcon({
   html: `<div style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 5px #f1c40f);font-size:18px;line-height:1;">🏛</div>`,
 });
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 const pv = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
 
 // ─── Static fallback incidents ──────────────────────────────────────────────
@@ -93,105 +94,7 @@ const INDIA_GEO = {
   },
 };
 
-// ─── Map Layer Data ─────────────────────────────────────────────────────────
-const MONUMENTS = [
-  { id: 'm1',  name: 'Taj Mahal',             pos: [27.1751, 78.0421], desc: 'UNESCO World Heritage Site — 17th century Mughal mausoleum in Agra, Uttar Pradesh.' },
-  { id: 'm2',  name: 'Red Fort',               pos: [28.6562, 77.2410], desc: 'Mughal-era historic fortress in Delhi, site of Independence Day celebrations.' },
-  { id: 'm3',  name: 'Qutub Minar',            pos: [28.5244, 77.1855], desc: 'UNESCO-listed 73m minaret built in 1193 AD in Delhi.' },
-  { id: 'm4',  name: 'India Gate',             pos: [28.6129, 77.2295], desc: 'War memorial on Rajpath, New Delhi, dedicated to 82,000 soldiers.' },
-  { id: 'm5',  name: 'Gateway of India',       pos: [18.9220, 72.8347], desc: 'Iconic 1924 arch monument in Mumbai overlooking the Arabian Sea.' },
-  { id: 'm6',  name: 'Charminar',              pos: [17.3616, 78.4747], desc: '16th century mosque and monument — heart of Hyderabad.' },
-  { id: 'm7',  name: 'Mysore Palace',          pos: [12.3052, 76.6552], desc: 'Opulent royal palace of the Wadiyar dynasty in Karnataka.' },
-  { id: 'm8',  name: 'Hawa Mahal',             pos: [26.9239, 75.8267], desc: 'Palace of Winds — five-storey pink sandstone facade in Jaipur.' },
-  { id: 'm9',  name: 'Konark Sun Temple',      pos: [19.8876, 86.0945], desc: 'UNESCO-listed 13th century temple shaped like a chariot in Odisha.' },
-  { id: 'm10', name: 'Hampi Ruins',            pos: [15.3350, 76.4600], desc: 'UNESCO-listed ruins of the Vijayanagara Empire in Karnataka.' },
-  { id: 'm11', name: 'Ajanta Caves',           pos: [20.5519, 75.7033], desc: 'UNESCO-listed 2nd century BC rock-cut Buddhist caves in Maharashtra.' },
-  { id: 'm12', name: 'Ellora Caves',           pos: [20.0269, 75.1780], desc: 'UNESCO-listed caves with Hindu, Buddhist & Jain temples in Maharashtra.' },
-  { id: 'm13', name: 'Khajuraho Temples',      pos: [24.8318, 79.9199], desc: 'UNESCO-listed medieval Hindu and Jain temples in Madhya Pradesh.' },
-  { id: 'm14', name: 'Victoria Memorial',       pos: [22.5448, 88.3426], desc: 'Marble monument built 1906–1921 in Kolkata, now a museum.' },
-  { id: 'm15', name: 'Golden Temple',           pos: [31.6200, 74.8765], desc: 'Harmandir Sahib — holiest shrine of Sikhism in Amritsar, Punjab.' },
-  { id: 'm16', name: 'Meenakshi Temple',        pos: [9.9195, 78.1193],  desc: 'Ancient 14-tower Dravidian temple complex in Madurai, Tamil Nadu.' },
-  { id: 'm17', name: 'Brihadeeswara Temple',    pos: [10.7828, 79.1318],  desc: 'UNESCO-listed Chola dynasty temple built in 1010 AD in Thanjavur.' },
-  { id: 'm18', name: 'Sun Temple Modhera',      pos: [23.5840, 72.1310],  desc: '11th century sun temple built by Chalukya dynasty in Gujarat.' },
-  { id: 'm19', name: 'Rani Ki Vav',             pos: [23.8587, 72.1010],  desc: 'UNESCO-listed 11th century stepwell in Patan, Gujarat.' },
-  { id: 'm20', name: 'Sanchi Stupa',            pos: [23.4793, 77.7400],  desc: 'UNESCO-listed 3rd century BC Buddhist stupa commissioned by Emperor Ashoka.' },
-  { id: 'm21', name: 'Fatehpur Sikri',          pos: [27.0940, 77.6610],  desc: 'UNESCO-listed Mughal capital city built by Akbar near Agra.' },
-  { id: 'm22', name: 'Amber Fort',              pos: [26.9855, 75.8513],  desc: 'Majestic hilltop fort-palace complex near Jaipur, Rajasthan.' },
-  { id: 'm23', name: 'Mehrangarh Fort',         pos: [26.2980, 73.0180],  desc: 'Towering 15th century fort overlooking Jodhpur, Rajasthan.' },
-  { id: 'm24', name: 'Lotus Temple',            pos: [28.5535, 77.2588],  desc: 'Bahá\'í House of Worship — iconic petal-shaped structure in Delhi.' },
-  { id: 'm25', name: 'Rashtrapati Bhavan',      pos: [28.6143, 77.1993],  desc: 'Former Viceroy\'s House — official residence of the President of India.' },
-  { id: 'm26', name: 'Nalanda University Ruins',pos: [25.1358, 85.4430],  desc: 'UNESCO-listed ruins of 5th century Nalanda — world\'s first residential university.' },
-  { id: 'm27', name: 'Mountain Monastery Hemis',pos: [33.9200, 77.7089],  desc: 'Largest Buddhist monastery in Ladakh, India.' },
-  { id: 'm28', name: 'Varanasi Ghats',          pos: [25.3176, 83.0130],  desc: 'Ancient sacred ghats along the Ganges — one of the world\'s oldest cities.' },
-  { id: 'm29', name: 'Mahabalipuram Shore Temp',pos: [12.6189, 80.1996],  desc: 'UNESCO cave temples and rathas carved by Pallava kings in Tamil Nadu.' },
-  { id: 'm30', name: 'Agra Fort',               pos: [27.1795, 78.0211],  desc: 'UNESCO-listed 16th century Mughal fortress and palace complex.' },
-];
 
-const MILITARY_BASES = [
-  { id: 'mb1',  name: 'INS Vikramaditya Base',   pos: [15.4589, 73.9720], desc: 'Aircraft carrier INS Vikramaditya home port at Karwar Naval Base, Goa.' },
-  { id: 'mb2',  name: 'Ambala Air Force Station', pos: [30.3800, 76.7766], desc: 'IAF Western Air Command base — home of Rafale fighter jets.' },
-  { id: 'mb3',  name: 'Hindon Air Force Base',    pos: [28.7010, 77.3890], desc: 'Largest IAF base in Asia, located near Ghaziabad, Uttar Pradesh.' },
-  { id: 'mb4',  name: 'INS Kadamba (Karwar)',      pos: [14.8126, 74.1317], desc: 'Largest naval base in India — Project Seabird, Karnataka.' },
-  { id: 'mb5',  name: 'Jodhpur Air Force Station', pos: [26.2510, 73.0490], desc: 'Key Western Sector IAF base for strike and transport aircraft.' },
-  { id: 'mb6',  name: 'Eastern Naval Command',    pos: [17.6900, 83.2200], desc: 'Headquarters of Eastern Naval Command, Visakhapatnam.' },
-  { id: 'mb7',  name: 'Western Naval Command',    pos: [18.9630, 72.8290], desc: 'Western Naval Command HQ, Mumbai — controls Arabian Sea operations.' },
-  { id: 'mb8',  name: 'Tezpur Air Base',           pos: [26.7090, 92.7840], desc: 'IAF Eastern Command strategic base near China border, Assam.' },
-  { id: 'mb9',  name: 'Sukhna Military Station',   pos: [30.7700, 76.8560], desc: 'Major Indian Army Headquarters in Chandigarh.' },
-  { id: 'mb10', name: 'Pathankot Airbase',          pos: [32.2340, 75.6350], desc: 'Frontline IAF base in Punjab near Pakistan border.' },
-  { id: 'mb11', name: 'Srinagar Air Base',          pos: [34.0050, 74.7760], desc: 'High-altitude IAF base for Kashmir Valley operations.' },
-  { id: 'mb12', name: 'Port Blair Naval Base',      pos: [11.6695, 92.7460], desc: 'Andaman & Nicobar Command — India\'s only tri-service command.' },
-  { id: 'mb13', name: 'Leh Air Base',               pos: [34.1350, 77.5460], desc: 'World\'s highest operational airport used by IAF, Ladakh.' },
-  { id: 'mb14', name: 'Wellington Military Station',pos: [11.3730, 76.7970], desc: 'Defence Services Staff College, Nilgiris, Tamil Nadu.' },
-  { id: 'mb15', name: 'INS Circars (Vizag)',        pos: [17.7500, 83.2980], desc: 'Primary Eastern Naval Command submarine base.' },
-];
-
-const NUCLEAR_SITES = [
-  { id: 'n1',  name: 'Pokhran Test Site',        pos: [27.0060, 71.5600], desc: '☢️ Pokhran, Rajasthan — Site of 1974 Smiling Buddha & 1998 Pokhran-II nuclear tests.' },
-  { id: 'n2',  name: 'BARC (Trombay)',            pos: [19.0176, 72.9144], desc: '🔬 Bhabha Atomic Research Centre — India\'s primary nuclear research facility, Mumbai.' },
-  { id: 'n3',  name: 'NPCIL Tarapur',             pos: [19.8380, 72.6540], desc: '⚡ Tarapur Atomic Power Station — India\'s first and oldest nuclear power plant, Maharashtra.' },
-  { id: 'n4',  name: 'Kudankulam NPP',            pos: [8.1700, 77.7060],  desc: '⚡ Kudankulam Nuclear Power Plant — Russia-India built VVER reactors in Tamil Nadu.' },
-  { id: 'n5',  name: 'Kalpakkam NPP',             pos: [12.5520, 80.1710], desc: '⚡ Madras Atomic Power Station & PFBR Fast Breeder Reactor, Tamil Nadu.' },
-  { id: 'n6',  name: 'Narora Atomic Power Station',pos: [28.1950, 78.3740], desc: '⚡ Two PHWR reactors in Narora, Uttar Pradesh.' },
-  { id: 'n7',  name: 'Kakrapar Atomic Station',   pos: [21.2430, 73.3760], desc: '⚡ Pressurised Heavy Water Reactors in Kakrapar, Gujarat.' },
-  { id: 'n8',  name: 'Rawatbhata Nuclear Station', pos: [24.9300, 75.5900], desc: '⚡ Rajasthan Atomic Power Station — largest nuclear complex by number of units.' },
-  { id: 'n9',  name: 'INS Arihant (SSBN Base)',   pos: [17.6850, 83.2870], desc: '☢️ Submarine base for INS Arihant — India\'s nuclear-powered ballistic missile submarine.' },
-  { id: 'n10', name: 'Uranium Corp. Jaduguda',    pos: [22.6580, 86.3480], desc: '⛏️ India\'s first uranium mining site, Jharkhand — operated by UCIL since 1967.' },
-  { id: 'n11', name: 'Gorakhpur NPP (planned)',   pos: [29.4488, 75.6690], desc: '🔧 Planned NPCIL nuclear power project in Haryana (under construction).' },
-  { id: 'n12', name: 'Advanced Technology Vessel', pos: [13.6550, 79.4500], desc: '🔬 INS Arihant built at Shipbuilding Centre, Visakhapatnam — naval nuclear propulsion.' },
-];
-
-// ─── Indian Festivals — All 29 States + 7 UTs ─────────────────────────────
-const FESTIVALS = [
-  { state: 'Karnataka',        festival: 'Mysuru Dasara',        month: 'Oct',  emoji: '🐘', color: '#FF6600',  desc: 'Grand 10-day celebration with the iconic elephant procession through Mysuru streets.' },
-  { state: 'Kerala',           festival: 'Onam',                 month: 'Aug',  emoji: '🛶', color: '#22c55e',  desc: 'Harvest festival with Vallam Kali boat race, pookalam flower art, and Onasadya feast.' },
-  { state: 'West Bengal',      festival: 'Durga Puja',           month: 'Oct',  emoji: '🪔', color: '#e74c3c',  desc: 'Grand pandals, dhunuchi dance, and immersion procession honoring Goddess Durga.' },
-  { state: 'Tamil Nadu',       festival: 'Pongal',               month: 'Jan',  emoji: '🍚', color: '#f39c12',  desc: 'Four-day harvest festival with boiling rice, Jallikattu bull-taming, and kolam art.' },
-  { state: 'Rajasthan',        festival: 'Pushkar Camel Fair',   month: 'Nov',  emoji: '🐫', color: '#e67e22',  desc: 'World\'s largest camel fair with folk performances, races, and desert celebrations.' },
-  { state: 'Punjab',           festival: 'Baisakhi',             month: 'Apr',  emoji: '💃', color: '#f1c40f',  desc: 'Harvest festival marking Punjabi New Year with Bhangra, fairs, and langar.' },
-  { state: 'Gujarat',          festival: 'Navratri',             month: 'Oct',  emoji: '🎶', color: '#9b59b6',  desc: 'Nine nights of Garba and Dandiya Raas dance celebrating Goddess Durga.' },
-  { state: 'Assam',            festival: 'Bihu',                 month: 'Apr',  emoji: '🌾', color: '#2ecc71',  desc: 'Three Bihus celebrate harvest with Bihu dance, husori songs, and petha fights.' },
-  { state: 'Maharashtra',      festival: 'Ganesh Chaturthi',     month: 'Sep',  emoji: '🐘', color: '#e74c3c',  desc: 'Grand Ganpati celebrations with massive idols, processions, and visarjan.' },
-  { state: 'Goa',              festival: 'Shigmo',               month: 'Mar',  emoji: '🎭', color: '#1abc9c',  desc: 'Spring festival with colorful float parades, folk dances, and music.' },
-  { state: 'Uttar Pradesh',    festival: 'Holi (Braj)',          month: 'Mar',  emoji: '🎨', color: '#e91e63',  desc: 'Legendary Lathmar Holi in Barsana with colors, flowers, and ancient traditions.' },
-  { state: 'Madhya Pradesh',   festival: 'Lokrang Festival',     month: 'Jan',  emoji: '🎪', color: '#8e44ad',  desc: 'Week-long tribal art and culture showcase in Bhopal with crafts and performances.' },
-  { state: 'Bihar',            festival: 'Chhath Puja',          month: 'Nov',  emoji: '🌅', color: '#FF9933',  desc: 'Ancient Vedic worship of Sun God at river ghats with fasting and offerings.' },
-  { state: 'Odisha',           festival: 'Rath Yatra',           month: 'Jul',  emoji: '🛕', color: '#3498db',  desc: 'Lord Jagannath\'s chariot festival in Puri with massive wooden chariots.' },
-  { state: 'Telangana',        festival: 'Bathukamma',           month: 'Oct',  emoji: '💐', color: '#e84393',  desc: 'Floral festival of Telangana women creating flower stacks and dancing.' },
-  { state: 'Andhra Pradesh',   festival: 'Ugadi',                month: 'Mar',  emoji: '🌿', color: '#00b894',  desc: 'Telugu New Year with pachadi (six-taste dish), rangoli, and temple visits.' },
-  { state: 'Jharkhand',        festival: 'Sarhul',               month: 'Mar',  emoji: '🌸', color: '#fd79a8',  desc: 'Tribal spring festival worshipping Sal trees with dance and sacred rituals.' },
-  { state: 'Uttarakhand',      festival: 'Kumbh Mela',           month: 'Jan',  emoji: '🛕', color: '#6c5ce7',  desc: 'World\'s largest spiritual gathering at Haridwar with millions of pilgrims.' },
-  { state: 'Himachal Pradesh', festival: 'Kullu Dussehra',       month: 'Oct',  emoji: '⛰️', color: '#0984e3',  desc: 'Unique week-long Dussehra with 200+ deities parading through Kullu Valley.' },
-  { state: 'Meghalaya',        festival: 'Wangala',              month: 'Nov',  emoji: '🥁', color: '#00cec9',  desc: 'Garo tribe\'s 100-drum festival thanking Sun God after harvest season.' },
-  { state: 'Nagaland',         festival: 'Hornbill Festival',    month: 'Dec',  emoji: '🦅', color: '#d63031',  desc: '"Festival of Festivals" showcasing all 17 Naga tribes\' traditions at Kisama.' },
-  { state: 'Manipur',          festival: 'Yaoshang',             month: 'Mar',  emoji: '🏮', color: '#fdcb6e',  desc: 'Meitei Holi with thabal chongba moonlit dance and sports competitions.' },
-  { state: 'Mizoram',          festival: 'Chapchar Kut',         month: 'Mar',  emoji: '🎋', color: '#55efc4',  desc: 'Spring festival after jhum clearing with bamboo dance and folk songs.' },
-  { state: 'Tripura',          festival: 'Kharchi Puja',         month: 'Jul',  emoji: '🔱', color: '#a29bfe',  desc: 'Royal worship of 14 deities at Old Agartala\'s Chaturdash Devata temple.' },
-  { state: 'Sikkim',           festival: 'Losar',                month: 'Feb',  emoji: '🎊', color: '#fab1a0',  desc: 'Tibetan New Year with masked Cham dance, feasts, and monastery visits.' },
-  { state: 'Arunachal Pradesh',festival: 'Ziro Festival',        month: 'Sep',  emoji: '🎸', color: '#74b9ff',  desc: 'Outdoor music festival in Ziro Valley amidst Apatani tribal paddy fields.' },
-  { state: 'Haryana',          festival: 'Sanjhi',               month: 'Oct',  emoji: '🎨', color: '#ffeaa7',  desc: 'Artistic festival where girls create elaborate mud and dung wall designs.' },
-  { state: 'Chhattisgarh',     festival: 'Bastar Dussehra',      month: 'Oct',  emoji: '🏹', color: '#e17055',  desc: '75-day tribal Dussehra — world\'s longest festival with unique rituals.' },
-  { state: 'Jammu & Kashmir',  festival: 'Hemis Festival',       month: 'Jun',  emoji: '🎭', color: '#dfe6e9',  desc: 'Masked Cham dance at Hemis Monastery celebrating Guru Padmasambhava.' },
-];
 
 
 // ─── Hooks ──────────────────────────────────────────────────────────────────
@@ -205,84 +108,7 @@ function useIsMobile(bp = 1024) {
   return is;
 }
 
-// ─── Festival Card ──────────────────────────────────────────────────────────
-function FestivalCard({ f, index }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ delay: index * 0.03, duration: 0.3 }}
-      whileHover={{ y: -4, scale: 1.02 }}
-      style={{
-        borderRadius: 'var(--radius)', overflow: 'hidden',
-        background: `linear-gradient(135deg, ${f.color}12, ${f.color}04)`,
-        border: `1px solid ${f.color}25`,
-        cursor: 'pointer',
-        transition: 'all 0.3s ease',
-        position: 'relative',
-      }}
-    >
-      {/* Top gradient accent */}
-      <div style={{
-        height: 3,
-        background: `linear-gradient(90deg, ${f.color}, ${f.color}60, transparent)`,
-      }} />
 
-      <div style={{ padding: '14px 16px 16px' }}>
-        {/* State + Month tag */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
-          <span style={{
-            fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 9,
-            padding: '2px 8px', borderRadius: 100, letterSpacing: '0.1em',
-            background: `${f.color}18`, color: f.color, border: `1px solid ${f.color}30`,
-          }}>
-            {f.state}
-          </span>
-          <span style={{
-            fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 9,
-            padding: '2px 6px', borderRadius: 100, marginLeft: 'auto',
-            background: 'rgba(255,255,255,0.04)', color: 'var(--text-muted)',
-            border: '1px solid rgba(255,255,255,0.06)',
-          }}>
-            📅 {f.month}
-          </span>
-        </div>
-
-        {/* Emoji + Festival Name */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: 12,
-            background: `linear-gradient(135deg, ${f.color}30, ${f.color}10)`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 22, flexShrink: 0,
-            border: `1px solid ${f.color}25`,
-            boxShadow: `0 4px 12px ${f.color}15`,
-          }}>
-            {f.emoji}
-          </div>
-          <h3 style={{
-            fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 15,
-            color: 'var(--text-primary)', lineHeight: 1.2, margin: 0,
-          }}>
-            {f.festival}
-          </h3>
-        </div>
-
-        {/* Description */}
-        <p style={{
-          fontFamily: 'var(--font-body)', fontSize: 11,
-          color: 'var(--text-secondary)', lineHeight: 1.5,
-          margin: 0,
-          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-        }}>
-          {f.desc}
-        </p>
-      </div>
-    </motion.div>
-  );
-}
 
 
 // ─── AI Mini Widget ─────────────────────────────────────────────────────────
@@ -498,11 +324,8 @@ function AIWidget({ insights }) {
 // ─── Main Home Page ────────────────────────────────────────────────────────
 export default function Home() {
   const [selected, setSelected] = useState(null);
-  const [festivalSearch, setFestivalSearch] = useState('');
-  const [showAllFestivals, setShowAllFestivals] = useState(false);
-  const [layers, setLayers] = useState({ monuments: false, military: false, nuclear: false });
   const isMobile = useIsMobile();
-  const toggleLayer = (key) => setLayers(p => ({ ...p, [key]: !p[key] }));
+  const { t } = useTranslation();
 
   const { data: dashboard, isLoading: loadingEvents } = useQuery({
     queryKey: ['ai-dashboard'],
@@ -521,10 +344,10 @@ export default function Home() {
     staleTime: 5 * 60 * 1000,
     retry: 1,
   });
+  const INCIDENTS = incData?.incidents?.length > 0 ? incData.incidents : STATIC_INCIDENTS;
+  const isLive = !!(incData?.incidents?.length > 0);
 
-  const INCIDENTS = dashboard?.incidents?.length > 0 ? dashboard.incidents : STATIC_INCIDENTS;
-  const isLive = !!(dashboard?.incidents?.length > 0);
-  const liveEvents = dashboard?.events || [];
+
 
   return (
     <motion.div variants={pv} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.2 }}>
@@ -542,7 +365,7 @@ export default function Home() {
               padding: '10px 16px', borderBottom: '1px solid rgba(255,102,0,0.08)',
               display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
             }}>
-              <span className="section-header" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none' }}>🗺️ India Live Map</span>
+              <span className="section-header" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none' }}>🗺️ {t('sections.incidentMap', 'India Incident Map')}</span>
               {isLive && (
                 <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
                   style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 8, letterSpacing: '0.1em',
@@ -552,7 +375,7 @@ export default function Home() {
                 </motion.span>
               )}
               <span style={{ marginLeft: 'auto', fontSize: 10, fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
-                {INCIDENTS.filter(i => i.type === 'alert').length} alerts · {INCIDENTS.filter(i => i.type === 'warn').length} warnings
+                {INCIDENTS.filter(i => i.type === 'alert').length} {t('common.alerts', 'alerts')} · {INCIDENTS.filter(i => i.type === 'warn').length} {t('common.warnings', 'warnings')}
               </span>
             </div>
 
@@ -673,7 +496,7 @@ export default function Home() {
               </MapContainer>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '8px 16px', borderTop: '1px solid rgba(255,102,0,0.06)', flexWrap: 'wrap' }}>
-              {[['alert', 'Alert'], ['warn', 'Warning'], ['safe', 'Safe']].map(([k, l]) => (
+              {[['alert', t('common.alert','Alert')], ['warn', t('common.warning','Warning')], ['safe', t('common.safe','Safe')]].map(([k, l]) => (
                 <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontFamily: 'var(--font-ui)', fontWeight: 600, color: TYPE[k] }}>
                   <div style={{ width: 7, height: 7, borderRadius: '50%', background: TYPE[k], boxShadow: `0 0 6px ${TYPE[k]}` }} /> {l}
                 </div>
@@ -693,171 +516,23 @@ export default function Home() {
 
       {/* ── Section 3: Live Pulse — Topics | Hashtags | Cricket ── */}
       <div className="page" style={{ paddingTop: 8, paddingBottom: 8 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 12 }}>
-
-          {/* 🔥 Trending Topics */}
-          <div className="card" style={{ padding: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <span style={{ fontSize: 16 }}>🔥</span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 12, letterSpacing: '0.08em', color: '#FF9933' }}>TRENDING NOW</span>
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {(dashboard?.insights?.trending || ['Politics', 'Economy', 'Weather', 'Sports', 'Tech', 'India']).map((topic, i) => (
-                <motion.div key={i} whileHover={{ scale: 1.05 }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '5px 10px', borderRadius: 20,
-                    background: 'rgba(255,153,51,0.08)', border: '1px solid rgba(255,153,51,0.2)',
-                  }}>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 10, color: 'rgba(255,153,51,0.6)' }}>{i + 1}</span>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--text-primary)' }}>{topic}</span>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* #️⃣ Trending Hashtags */}
-          <div className="card" style={{ padding: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <span style={{ fontSize: 16 }}>#️⃣</span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 12, letterSpacing: '0.08em', color: '#a29bfe' }}>HASHTAGS</span>
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {(dashboard?.hashtags || ['#India', '#Politics', '#Economy', '#Cricket', '#Monsoon', '#ISRO', '#Rupee', '#BJP']).map((tag, i) => (
-                <motion.div key={i} whileHover={{ scale: 1.05 }}
-                  style={{
-                    padding: '5px 10px', borderRadius: 20,
-                    background: 'rgba(162,155,254,0.08)', border: '1px solid rgba(162,155,254,0.2)',
-                  }}>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 12, color: '#a29bfe' }}>{tag.startsWith('#') ? tag : `#${tag}`}</span>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* 🏏 Live Cricket */}
-          <div className="card" style={{ padding: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <span style={{ fontSize: 16 }}>🏏</span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 12, letterSpacing: '0.08em', color: '#22c55e' }}>LIVE CRICKET</span>
-              <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
-                style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: '#22c55e', flexShrink: 0 }} />
-            </div>
-            {!cricketData?.matches?.length ? (
-              <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--text-muted)', fontSize: 12, fontFamily: 'var(--font-ui)' }}>
-                🌙 No live matches right now
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {cricketData.matches.slice(0, 3).map((m, i) => {
-                  const isLive = m.matchStarted && !m.matchEnded;
-                  return (
-                    <div key={m.id || i} style={{
-                      padding: '10px 12px', borderRadius: 10,
-                      background: isLive ? 'rgba(34,197,94,0.06)' : 'rgba(255,255,255,0.03)',
-                      border: `1px solid ${isLive ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.06)'}`,
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6, gap: 8 }}>
-                        <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 11, color: 'var(--text-primary)', lineHeight: 1.3, flex: 1 }}>
-                          {m.name?.replace(' - Live', '').slice(0, 38)}{(m.name?.length || 0) > 38 ? '…' : ''}
-                        </span>
-                        <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 8, letterSpacing: '0.1em',
-                          padding: '2px 6px', borderRadius: 100, flexShrink: 0,
-                          background: isLive ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.06)',
-                          color: isLive ? '#22c55e' : 'var(--text-muted)' }}>
-                          {isLive ? '● LIVE' : m.matchEnded ? 'ENDED' : 'UPCOMING'}
-                        </span>
-                      </div>
-                      {m.score?.slice(0, 2).map((s, si) => (
-                        <div key={si} style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                          <strong style={{ color: 'var(--text-primary)' }}>{s.inning?.split(' Inning')?.[0]}:</strong> {s.r}/{s.w} ({s.o} ov)
-                        </div>
-                      ))}
-                      {!m.score?.length && (
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-ui)' }}>{m.status}</div>
-                      )}
-                    </div>
-                  );
-                })}
+        <div className="grid-responsive-4">
+          {INCIDENTS.slice(0, 4).map((inc, i) => (
+            <motion.div key={inc.id}
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+              className={`alert-card alert-card-${inc.type}`}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <div className={`alert-icon-pill alert-icon-pill-${inc.type}`}>{TYPE_ICON[inc.type]}</div>
+                <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: TYPE[inc.type] }}>
+                  {inc.type === 'alert' ? t('common.alert','ALERT') : inc.type === 'warn' ? t('common.warning','WARNING') : t('common.safe','SAFE')}
+                </span>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* ── Section 4: 🎟️ Live Events & Happenings (compact) ── */}
-      <div className="page" style={{ paddingTop: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
-          <span className="section-header" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none' }}>🎟️ Live Events & Happenings</span>
-          <div style={{ display: 'flex', gap: 6, marginLeft: 'auto', flexWrap: 'wrap' }}>
-            {['All', 'Festivals', 'Movies', 'Concerts', 'Elections'].map(cat => (
-              <motion.button key={cat} onClick={() => setFestivalSearch(festivalSearch === cat ? '' : cat)}
-                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                style={{
-                  padding: '4px 12px', borderRadius: 20, fontSize: 10, fontFamily: 'var(--font-ui)', fontWeight: 600,
-                  background: festivalSearch === cat ? 'rgba(255,102,0,0.15)' : 'var(--bg-card2)',
-                  color: festivalSearch === cat ? '#FF9933' : 'var(--text-secondary)',
-                  border: `1px solid ${festivalSearch === cat ? 'rgba(255,102,0,0.3)' : 'var(--border)'}`,
-                  cursor: 'pointer', whiteSpace: 'nowrap',
-                }}>
-                {cat === 'All' ? '🌟 All' : cat === 'Festivals' ? '🪔 Festivals' : cat === 'Movies' ? '🍿 Movies' : cat === 'Concerts' ? '🎸 Concerts' : '🗳️ Elections'}
-              </motion.button>
-            ))}
-          </div>
-        </div>
 
-        {loadingEvents ? (
-          <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)' }}>
-            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-              style={{ width: 18, height: 18, borderRadius: '50%', border: '2px solid #FF6600', borderTopColor: 'transparent', margin: '0 auto 8px' }} />
-            <span style={{ fontSize: 12, fontFamily: 'var(--font-ui)' }}>Tracking live events...</span>
-          </div>
-        ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
-            gap: 8,
-          }}>
-            {liveEvents.filter(f => {
-              if (!festivalSearch || festivalSearch === 'All') return true;
-              const txt = (f.festival + ' ' + f.desc).toLowerCase();
-              if (festivalSearch === 'Movies') return txt.includes('movie') || txt.includes('film') || txt.includes('trailer') || f.emoji === '🍿' || f.emoji === '🎬';
-              if (festivalSearch === 'Concerts') return txt.includes('concert') || txt.includes('tour') || txt.includes('music') || f.emoji === '🎸' || f.emoji === '🎤';
-              if (festivalSearch === 'Elections') return txt.includes('election') || txt.includes('poll') || f.emoji === '🗳️';
-              if (festivalSearch === 'Festivals') return txt.includes('festival') || txt.includes('puja') || f.emoji === '🪔' || f.emoji === '✨' || f.emoji === '🎆';
-              return true;
-            }).map((f, i) => (
-              <motion.div key={i}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.03 }}
-                whileHover={{ y: -3, scale: 1.02 }}
-                style={{
-                  borderRadius: 10, padding: '10px 12px',
-                  background: `linear-gradient(135deg, ${f.color}10, ${f.color}04)`,
-                  border: `1px solid ${f.color}22`,
-                  cursor: 'pointer', position: 'relative', overflow: 'hidden',
-                }}>
-                <div style={{ height: 2, background: `linear-gradient(90deg, ${f.color}, transparent)`, margin: '-10px -12px 8px' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                  <span style={{ fontSize: 16 }}>{f.emoji}</span>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 9, letterSpacing: '0.1em',
-                    padding: '1px 6px', borderRadius: 100, background: `${f.color}18`, color: f.color, border: `1px solid ${f.color}25` }}>
-                    {f.month || 'LIVE'}
-                  </span>
-                </div>
-                <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: 3 }}>
-                  {f.festival?.slice(0, 22)}{(f.festival?.length || 0) > 22 ? '…' : ''}
-                </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.3 }}>
-                  {f.state || 'India'}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </div>
 
     </motion.div>
   );

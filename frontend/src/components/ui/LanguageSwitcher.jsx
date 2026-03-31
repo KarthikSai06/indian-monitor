@@ -1,50 +1,109 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import i18n from '../../i18n';
 import useStore from '../../store/useStore';
 
+// ── Google Translate language codes that match the widget's includedLanguages ──
 const LANGUAGES = [
-  { code: 'en', flag: '🇬🇧', name: 'English',    native: 'English'    },
-  { code: 'hi', flag: '🇮🇳', name: 'Hindi',      native: 'हिन्दी'      },
-  { code: 'ta', flag: '🇮🇳', name: 'Tamil',      native: 'தமிழ்'       },
-  { code: 'te', flag: '🇮🇳', name: 'Telugu',     native: 'తెలుగు'      },
-  { code: 'kn', flag: '🇮🇳', name: 'Kannada',    native: 'ಕನ್ನಡ'       },
-  { code: 'bn', flag: '🇮🇳', name: 'Bengali',    native: 'বাংলা'       },
-  { code: 'gu', flag: '🇮🇳', name: 'Gujarati',   native: 'ગુજરાતી'     },
-  { code: 'mr', flag: '🇮🇳', name: 'Marathi',    native: 'मराठी'       },
-  { code: 'ml', flag: '🇮🇳', name: 'Malayalam',  native: 'മലയാളം'     },
-  { code: 'pa', flag: '🇮🇳', name: 'Punjabi',    native: 'ਪੰਜਾਬੀ'     },
-  { code: 'or', flag: '🇮🇳', name: 'Odia',       native: 'ଓଡ଼ିଆ'      },
-  { code: 'as', flag: '🇮🇳', name: 'Assamese',   native: 'অসমীয়া'      },
-  { code: 'ur', flag: '🇮🇳', name: 'Urdu',       native: 'اردو'      },
-  { code: 'sa', flag: '🇮🇳', name: 'Sanskrit',   native: 'संस्कृत'      },
-  { code: 'sd', flag: '🇮🇳', name: 'Sindhi',     native: 'سنڌي'       },
-  { code: 'ks', flag: '🇮🇳', name: 'Kashmiri',   native: 'كشميري'      },
-  { code: 'ne', flag: '🇮🇳', name: 'Nepali',     native: 'नेपाली'      },
-  { code: 'kok', flag: '🇮🇳', name: 'Konkani',   native: 'कोंकणी'      },
-  { code: 'brx', flag: '🇮🇳', name: 'Bodo',      native: 'बड़ो'       },
-  { code: 'sat', flag: '🇮🇳', name: 'Santali',   native: 'ᱥᱟᱱᱛᱟᱲᱤ'      },
-  { code: 'mai', flag: '🇮🇳', name: 'Maithili',  native: 'मैथिली'      },
-  { code: 'doi', flag: '🇮🇳', name: 'Dogri',     native: 'डोगरी'      },
-  { code: 'mni', flag: '🇮🇳', name: 'Manipuri',  native: 'ꯃꯤꯇꯩꯂꯣꯟ'     },
+  { code: 'en',  gtCode: 'en',  flag: '🇬🇧', name: 'English',   native: 'English'      },
+  { code: 'hi',  gtCode: 'hi',  flag: '🇮🇳', name: 'Hindi',     native: 'हिन्दी'        },
+  { code: 'ta',  gtCode: 'ta',  flag: '🇮🇳', name: 'Tamil',     native: 'தமிழ்'         },
+  { code: 'te',  gtCode: 'te',  flag: '🇮🇳', name: 'Telugu',    native: 'తెలుగు'        },
+  { code: 'kn',  gtCode: 'kn',  flag: '🇮🇳', name: 'Kannada',   native: 'ಕನ್ನಡ'         },
+  { code: 'bn',  gtCode: 'bn',  flag: '🇮🇳', name: 'Bengali',   native: 'বাংলা'         },
+  { code: 'gu',  gtCode: 'gu',  flag: '🇮🇳', name: 'Gujarati',  native: 'ગુજરાતી'       },
+  { code: 'mr',  gtCode: 'mr',  flag: '🇮🇳', name: 'Marathi',   native: 'मराठी'         },
+  { code: 'ml',  gtCode: 'ml',  flag: '🇮🇳', name: 'Malayalam', native: 'മലയാളം'       },
+  { code: 'pa',  gtCode: 'pa',  flag: '🇮🇳', name: 'Punjabi',   native: 'ਪੰਜਾਬੀ'       },
+  { code: 'or',  gtCode: 'or',  flag: '🇮🇳', name: 'Odia',      native: 'ଓଡ଼ିଆ'        },
+  { code: 'as',  gtCode: 'as',  flag: '🇮🇳', name: 'Assamese',  native: 'অসমীয়া'       },
+  { code: 'ur',  gtCode: 'ur',  flag: '🇮🇳', name: 'Urdu',      native: 'اردو'         },
+  { code: 'sa',  gtCode: 'sa',  flag: '🇮🇳', name: 'Sanskrit',  native: 'संस्कृत'       },
+  { code: 'ne',  gtCode: 'ne',  flag: '🇮🇳', name: 'Nepali',    native: 'नेपाली'        },
+  { code: 'mai', gtCode: 'mai', flag: '🇮🇳', name: 'Maithili',  native: 'मैथिली'        },
 ];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Core helper: set the googtrans cookie + trigger the Google Translate select
+// ─────────────────────────────────────────────────────────────────────────────
+function setGoogleTranslateCookie(langCode) {
+  const value = langCode === 'en' ? '/en/en' : `/en/${langCode}`;
+  // Write cookie on all paths / subdomains
+  document.cookie = `googtrans=${value}; path=/`;
+  document.cookie = `googtrans=${value}; path=/; domain=${window.location.hostname}`;
+}
+
+function triggerGoogleTranslate(langCode) {
+  setGoogleTranslateCookie(langCode);
+
+  // Method 1: use the hidden <select> that Google Translate renders
+  const trySelect = () => {
+    const combo = document.querySelector('.goog-te-combo');
+    if (combo) {
+      combo.value = langCode;
+      combo.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    }
+    return false;
+  };
+
+  if (!trySelect()) {
+    // Widget not ready yet — retry up to 20× (2 s)
+    let tries = 0;
+    const iv = setInterval(() => {
+      if (trySelect() || ++tries >= 20) clearInterval(iv);
+    }, 100);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────────────────────────────────────
 export default function LanguageSwitcher() {
   const [open, setOpen] = useState(false);
   const { language, setLanguage } = useStore();
   const ref = useRef(null);
-  const current = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
+  const current = LANGUAGES.find((l) => l.code === language) || LANGUAGES[0];
 
-  // Close on outside click
+  // ── Restore saved language on first mount ──────────────────────────────────
   useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    if (language && language !== 'en') {
+      // Allow time for the GT widget to load then apply
+      const t = setTimeout(() => triggerGoogleTranslate(language), 1500);
+      return () => clearTimeout(t);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── MutationObserver: re-apply translation when new content arrives ────────
+  useEffect(() => {
+    if (!language || language === 'en') return;
+
+    const observer = new MutationObserver(() => {
+      // Re-trigger translate whenever the DOM changes significantly
+      // (new news cards, lazy-loaded sections, etc.)
+      triggerGoogleTranslate(language);
+    });
+
+    observer.observe(document.getElementById('root') || document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => observer.disconnect();
+  }, [language]);
+
+  // ── Close dropdown on outside click ───────────────────────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const select = (code) => {
-    i18n.changeLanguage(code);
-    setLanguage(code);
+  // ── Handle language selection ──────────────────────────────────────────────
+  const select = (lang) => {
+    setLanguage(lang.code);
+    triggerGoogleTranslate(lang.gtCode);
     setOpen(false);
   };
 
@@ -52,7 +111,7 @@ export default function LanguageSwitcher() {
     <div ref={ref} style={{ position: 'relative', userSelect: 'none' }}>
       {/* Trigger button */}
       <motion.button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen((o) => !o)}
         whileHover={{ backgroundColor: 'rgba(255,102,0,0.1)' }}
         whileTap={{ scale: 0.96 }}
         style={{
@@ -91,13 +150,14 @@ export default function LanguageSwitcher() {
             transition={{ duration: 0.15, ease: 'easeOut' }}
             style={{
               position: 'absolute', right: 0, top: 'calc(100% + 8px)', zIndex: 999,
-              minWidth: 200,
+              minWidth: 200, maxHeight: '70vh', overflowY: 'auto',
               background: 'rgba(12,12,24,0.98)',
               border: '1px solid rgba(255,102,0,0.2)',
               borderRadius: 14,
               boxShadow: '0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,102,0,0.08)',
-              overflow: 'hidden',
               backdropFilter: 'blur(24px)',
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'rgba(255,102,0,0.3) transparent',
             }}
           >
             {/* Header */}
@@ -106,6 +166,9 @@ export default function LanguageSwitcher() {
               borderBottom: '1px solid rgba(255,102,0,0.1)',
               fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 10,
               letterSpacing: '0.12em', color: '#565680',
+              position: 'sticky', top: 0,
+              background: 'rgba(12,12,24,0.99)',
+              zIndex: 1,
             }}>
               🌐 SELECT LANGUAGE
             </div>
@@ -116,7 +179,7 @@ export default function LanguageSwitcher() {
               return (
                 <motion.button
                   key={lang.code}
-                  onClick={() => select(lang.code)}
+                  onClick={() => select(lang)}
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.025 }}
@@ -125,7 +188,8 @@ export default function LanguageSwitcher() {
                     display: 'flex', alignItems: 'center', gap: 10,
                     width: '100%', padding: '9px 14px',
                     background: isActive ? 'rgba(255,102,0,0.1)' : 'transparent',
-                    border: 'none', cursor: 'pointer', borderLeft: `3px solid ${isActive ? '#FF6600' : 'transparent'}`,
+                    border: 'none', cursor: 'pointer',
+                    borderLeft: `3px solid ${isActive ? '#FF6600' : 'transparent'}`,
                     transition: 'all 0.1s',
                   }}
                 >

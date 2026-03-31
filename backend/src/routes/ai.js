@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios');
-const { translateText, chatWithGemini, generateDashboardData, generateWeatherSummary } = require('../services/aiEnricher');
-const { getNews, extractEventsFromNews } = require('../services/rssFetcher');
+const { translateText, translateBatch, generateInsights, chatWithGemini, generateIncidents } = require('../services/aiEnricher');
+const { getNews } = require('../services/rssFetcher');
 
 // ─── Mega-Endpoint Cache & Mutex ───
 let dashboardCache = null;
@@ -90,8 +89,23 @@ router.get('/dashboard', async (req, res) => {
   }
 });
 
+// POST /api/ai/translate-batch — translate an array of texts in one call
+router.post('/translate-batch', async (req, res) => {
+  try {
+    const { texts, targetLang } = req.body;
+    if (!texts || !Array.isArray(texts) || !targetLang) {
+      return res.status(400).json({ error: 'texts (array) and targetLang are required' });
+    }
+    if (targetLang === 'en') return res.json({ translations: texts });
+    const translations = await translateBatch(texts, targetLang);
+    res.json({ translations });
+  } catch (err) {
+    console.error('[AI] translate-batch error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 
-// POST /api/ai/chat — Streaming Chatbot
+// POST /api/ai/chat (streaming)
 router.post('/chat', async (req, res) => {
   const apiKey = req.headers['x-gemini-key'];
   if (!apiKey) return res.status(401).json({ error: 'Missing Gemini Key in Settings.' });

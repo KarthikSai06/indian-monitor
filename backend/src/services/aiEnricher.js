@@ -8,11 +8,50 @@ function getClient(apiKey) {
   return genAI;
 }
 
-async function generateWithPrompt(prompt, apiKey) {
-  const genAI = getClient(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-  const result = await model.generateContent(prompt);
-  return result.response.text() || '';
+async function translateBatch(texts, targetLang) {
+  const langNames = {
+    hi: 'Hindi', ta: 'Tamil', te: 'Telugu', kn: 'Kannada',
+    bn: 'Bengali', gu: 'Gujarati', mr: 'Marathi', ml: 'Malayalam', pa: 'Punjabi',
+    or: 'Odia', as: 'Assamese', ur: 'Urdu', sa: 'Sanskrit', sd: 'Sindhi',
+    ks: 'Kashmiri', ne: 'Nepali', kok: 'Konkani', brx: 'Bodo', sat: 'Santali',
+    mai: 'Maithili', doi: 'Dogri', mni: 'Manipuri', en: 'English'
+  };
+  const langName = langNames[targetLang] || 'Hindi';
+  if (!texts || texts.length === 0) return [];
+
+  const numbered = texts.map((t, i) => `[${i}] ${t}`).join('\n---\n');
+  const prompt = `Translate each of the following numbered Indian news texts to ${langName}.
+Rules:
+- Keep each item numbered with [index] prefix exactly as shown
+- Separate items with ---
+- Return ONLY the translated texts in the same numbered format
+- Do NOT add explanations, do NOT skip any item
+
+${numbered}`;
+
+  try {
+    const raw = (await generateWithPrompt(prompt)).trim();
+    const parts = raw.split(/\n?---\n?/);
+    const results = new Array(texts.length).fill('');
+    for (const part of parts) {
+      const match = part.match(/^\[(\d+)\]\s*([\s\S]*)/);
+      if (match) {
+        const idx = parseInt(match[1], 10);
+        if (idx >= 0 && idx < texts.length) {
+          results[idx] = match[2].trim();
+        }
+      }
+    }
+    return results.map((r, i) => r || texts[i]); // fallback to original if parse fails
+  } catch (err) {
+    console.error('[AI] translateBatch error:', err.message);
+    return texts; // return originals on error
+  }
+}
+
+async function generateWeatherSummary(city, weatherData) {
+  const prompt = `You are a friendly Indian weather reporter. Write a 3-sentence AI forecast summary for ${city} based on this data: ${JSON.stringify(weatherData)}. Be conversational, mention how residents should prepare, and include a local touch. Return only the summary text.`;
+  return (await generateWithPrompt(prompt)).trim();
 }
 
 async function chatWithGemini(messages, apiKey) {
@@ -121,20 +160,4 @@ RULES:
   }
 }
 
-async function translateText(text, targetLang, apiKey) {
-  const langNames = { hi: 'Hindi', ta: 'Tamil', te: 'Telugu', kn: 'Kannada', bn: 'Bengali' };
-  const prompt = `Translate this Indian news to ${langNames[targetLang] || 'English'}. Return ONLY translated text:\n\n${text}`;
-  return (await generateWithPrompt(prompt, apiKey)).trim();
-}
-
-async function generateWeatherSummary(city, weatherData, apiKey) {
-  const prompt = `You are an Indian weather reporter. Write a 3-sentence AI forecast summary for ${city} based on: ${JSON.stringify(weatherData)}. Return only the summary text.`;
-  return (await generateWithPrompt(prompt, apiKey)).trim();
-}
-
-module.exports = { 
-  chatWithGemini, 
-  generateDashboardData, 
-  translateText, 
-  generateWeatherSummary 
-};
+module.exports = { enrichArticles, translateText, translateBatch, generateWeatherSummary, generateInsights, chatWithGemini, generateIncidents };
