@@ -12,6 +12,7 @@ export default function Navbar() {
     { id: 'news', path: '/news', label: t('nav.news', 'News'), sublabel: t('nav.liveNews', 'Live Feed') },
     { id: 'economy', path: '/economy', label: t('nav.economy', 'Global'), sublabel: 'Economy' },
     { id: 'weather', path: '/weather', label: t('nav.weather', 'Weather'), sublabel: 'India' },
+    { id: 'festivals', path: '/festivals', label: 'Festivals', sublabel: 'Events' },
   ];
 
   const activeId = TABS.find(t =>

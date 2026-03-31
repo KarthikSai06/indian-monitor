@@ -9,8 +9,57 @@
     <meta property="og:title" content="Bharat Monitor — India's Live Intelligence Hub" />
     <meta property="og:description" content="Real-time Indian news, AI-powered insights in 10 languages" />
     <title>Bharat Monitor — India's Live Intelligence Hub</title>
+
+    <!-- ── Google Translate: hide the default toolbar ── -->
+    <style>
+      /* Hide the floating Google Translate toolbar */
+      .goog-te-banner-frame,
+      .goog-te-balloon-frame,
+      #goog-gt-tt,
+      .goog-tooltip,
+      .goog-tooltip:hover,
+      .skiptranslate,
+      .goog-te-menu-value span,
+      .goog-te-gadget {
+        display: none !important;
+        visibility: hidden !important;
+      }
+
+      /* Prevent the body top offset that Google Translate adds */
+      body {
+        top: 0 !important;
+      }
+
+      /* Hide the Google Translate frame that sits at the top */
+      iframe.goog-te-banner-frame {
+        display: none !important;
+      }
+    </style>
+
+    <!-- Google Translate initialiser -->
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          {
+            pageLanguage: 'en',
+            includedLanguages:
+              'en,hi,ta,te,kn,bn,gu,mr,ml,pa,or,as,ur,sa,sd,ne,mai',
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false,
+          },
+          'google_translate_element'
+        );
+      }
+    </script>
+    <script
+      type="text/javascript"
+      src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+    ></script>
   </head>
   <body>
+    <!-- Hidden Google Translate mount point -->
+    <div id="google_translate_element" style="display:none;visibility:hidden;"></div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
