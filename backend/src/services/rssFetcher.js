@@ -126,4 +126,35 @@ function setEnrichedArticles(category, articles) {
   cache.set('news_all', dedup(all).sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate)));
 }
 
-module.exports = { fetchAllFeeds, getNews, getCache, setEnrichedArticles };
+function extractEventsFromNews() {
+  const articles = cache.get('news_all') || [];
+  const events = [];
+  const keywords = ['concert', 'live tour ', 'trailer', 'box office', 'festival ', 'celebrates', 'election phase', 'polling', 'voting', 'film release', 'inaugurates'];
+
+  for (const article of articles) {
+    if (events.length >= 8) break; // Limit raw events to 8
+    
+    const lowerTitle = article.title.toLowerCase();
+    
+    for (const kw of keywords) {
+      if (lowerTitle.includes(kw)) {
+        events.push({
+          title: article.title,
+          source: article.source,
+          date: new Date(article.pubDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
+          link: article.link,
+          desc: article.description?.substring(0, 150) || 'More details inside.',
+          type: kw.includes('election') || kw.includes('polling') ? 'Election' 
+              : kw.includes('trailer') || kw.includes('box office') ? 'Movie'
+              : kw.includes('concert') || kw.includes('tour') ? 'Concert'
+              : kw.includes('festival') || kw.includes('celebrating') ? 'Festival'
+              : 'Event'
+        });
+        break; // matched one keyword, move to next article
+      }
+    }
+  }
+  return events;
+}
+
+module.exports = { fetchAllFeeds, getNews, getCache, setEnrichedArticles, extractEventsFromNews };
