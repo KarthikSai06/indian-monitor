@@ -4,22 +4,22 @@ import useStore from '../../store/useStore';
 
 // ── Google Translate language codes that match the widget's includedLanguages ──
 const LANGUAGES = [
-  { code: 'en',  gtCode: 'en',  flag: '🇬🇧', name: 'English',   native: 'English'      },
-  { code: 'hi',  gtCode: 'hi',  flag: '🇮🇳', name: 'Hindi',     native: 'हिन्दी'        },
-  { code: 'ta',  gtCode: 'ta',  flag: '🇮🇳', name: 'Tamil',     native: 'தமிழ்'         },
-  { code: 'te',  gtCode: 'te',  flag: '🇮🇳', name: 'Telugu',    native: 'తెలుగు'        },
-  { code: 'kn',  gtCode: 'kn',  flag: '🇮🇳', name: 'Kannada',   native: 'ಕನ್ನಡ'         },
-  { code: 'bn',  gtCode: 'bn',  flag: '🇮🇳', name: 'Bengali',   native: 'বাংলা'         },
-  { code: 'gu',  gtCode: 'gu',  flag: '🇮🇳', name: 'Gujarati',  native: 'ગુજરાતી'       },
-  { code: 'mr',  gtCode: 'mr',  flag: '🇮🇳', name: 'Marathi',   native: 'मराठी'         },
-  { code: 'ml',  gtCode: 'ml',  flag: '🇮🇳', name: 'Malayalam', native: 'മലയാളം'       },
-  { code: 'pa',  gtCode: 'pa',  flag: '🇮🇳', name: 'Punjabi',   native: 'ਪੰਜਾਬੀ'       },
-  { code: 'or',  gtCode: 'or',  flag: '🇮🇳', name: 'Odia',      native: 'ଓଡ଼ିଆ'        },
-  { code: 'as',  gtCode: 'as',  flag: '🇮🇳', name: 'Assamese',  native: 'অসমীয়া'       },
-  { code: 'ur',  gtCode: 'ur',  flag: '🇮🇳', name: 'Urdu',      native: 'اردو'         },
-  { code: 'sa',  gtCode: 'sa',  flag: '🇮🇳', name: 'Sanskrit',  native: 'संस्कृत'       },
-  { code: 'ne',  gtCode: 'ne',  flag: '🇮🇳', name: 'Nepali',    native: 'नेपाली'        },
-  { code: 'mai', gtCode: 'mai', flag: '🇮🇳', name: 'Maithili',  native: 'मैथिली'        },
+  { code: 'en', gtCode: 'en', flag: '🇬🇧', name: 'English', native: 'English' },
+  { code: 'hi', gtCode: 'hi', flag: '🇮🇳', name: 'Hindi', native: 'हिन्दी' },
+  { code: 'ta', gtCode: 'ta', flag: '🇮🇳', name: 'Tamil', native: 'தமிழ்' },
+  { code: 'te', gtCode: 'te', flag: '🇮🇳', name: 'Telugu', native: 'తెలుగు' },
+  { code: 'kn', gtCode: 'kn', flag: '🇮🇳', name: 'Kannada', native: 'ಕನ್ನಡ' },
+  { code: 'bn', gtCode: 'bn', flag: '🇮🇳', name: 'Bengali', native: 'বাংলা' },
+  { code: 'gu', gtCode: 'gu', flag: '🇮🇳', name: 'Gujarati', native: 'ગુજરાતી' },
+  { code: 'mr', gtCode: 'mr', flag: '🇮🇳', name: 'Marathi', native: 'मराठी' },
+  { code: 'ml', gtCode: 'ml', flag: '🇮🇳', name: 'Malayalam', native: 'മലയാളം' },
+  { code: 'pa', gtCode: 'pa', flag: '🇮🇳', name: 'Punjabi', native: 'ਪੰਜਾਬੀ' },
+  { code: 'or', gtCode: 'or', flag: '🇮🇳', name: 'Odia', native: 'ଓଡ଼ିଆ' },
+  { code: 'as', gtCode: 'as', flag: '🇮🇳', name: 'Assamese', native: 'অসমীয়া' },
+  { code: 'ur', gtCode: 'ur', flag: '🇮🇳', name: 'Urdu', native: 'اردو' },
+  { code: 'sa', gtCode: 'sa', flag: '🇮🇳', name: 'Sanskrit', native: 'संस्कृत' },
+  { code: 'ne', gtCode: 'ne', flag: '🇮🇳', name: 'Nepali', native: 'नेपाली' },
+  { code: 'mai', gtCode: 'mai', flag: '🇮🇳', name: 'Maithili', native: 'मैथिली' },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
