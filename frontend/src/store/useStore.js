@@ -26,6 +26,7 @@ const useStore = create(
 
       // User prefs
       theme: 'dark',
+      setTheme: (t) => set({ theme: t }),
       notifications: true,
       setNotifications: (v) => set({ notifications: v }),
     }),
@@ -35,6 +36,7 @@ const useStore = create(
         onboardingDone: state.onboardingDone,
         selectedFeatures: state.selectedFeatures,
         language: state.language,
+        theme: state.theme,
         notifications: state.notifications,
       }),
     }

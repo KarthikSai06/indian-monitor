@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, CircleMarker, Marker, Popup, GeoJSON } from 'r
 import L from 'leaflet';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import useStore from '../store/useStore';
 
 // ─── Custom DivIcon factories ──────────────────────────────────────────────
 const nuclearIcon = L.divIcon({
@@ -176,6 +177,8 @@ export default function Home() {
   });
   const isMobile = useIsMobile();
   const { t } = useTranslation();
+  const { theme } = useStore();
+  const isDark = theme === 'dark';
 
   const toggleLayer = (key) => setLayers(prev => ({ ...prev, [key]: !prev[key] }));
 
@@ -210,20 +213,20 @@ export default function Home() {
           {/* India Map */}
           <div className="card card-static" style={{ overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255,102,0,0.08)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span className="section-header" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none', letterSpacing: '0.05em', color: '#f0f0f8' }}>🗺️ {t('sections.incidentMap', 'India Info Map')}</span>
+              <span className="section-header" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none', letterSpacing: '0.05em', color: 'var(--text-primary)' }}>🗺️ {t('sections.incidentMap', 'India Info Map')}</span>
               {isLive && (
                 <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
                   style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 8, letterSpacing: '0.1em', padding: '2px 8px', borderRadius: 100, background: 'rgba(255,102,0,0.12)', border: '1px solid rgba(255,102,0,0.25)', color: '#FF9933' }}>
                   🤖 AI-LIVE
                 </motion.span>
               )}
-              <span style={{ marginLeft: 'auto', fontSize: 10, fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
+              <span style={{ marginLeft: 'auto', fontSize: 12, fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
                 {INCIDENTS.filter(i => i.type === 'alert').length} {t('common.alerts','alerts')} · {INCIDENTS.filter(i => i.type === 'warn').length} {t('common.warnings','warnings')}
               </span>
             </div>
 
             {/* Layer Filters */}
-            <div style={{ display: 'flex', gap: 8, padding: '8px 16px', background: 'rgba(0,0,0,0.2)', flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+            <div style={{ display: 'flex', gap: 8, padding: '8px 16px', background: 'var(--bg-card-solid)', flexWrap: 'wrap', borderBottom: '1px solid var(--glass-border)' }}>
               {[
                 { key: 'monuments', label: '🏛 Monuments',     color: '#f1c40f' },
                 { key: 'space',     label: '🚀 Space & R&D',   color: '#8b5cf6' },
@@ -236,7 +239,7 @@ export default function Home() {
                 { key: 'airports',  label: '✈️ Airports',      color: '#6366f1' },
               ].map(({ key, label, color }) => (
                 <motion.button key={key} onClick={() => toggleLayer(key)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                  style={{ padding: '4px 12px', borderRadius: 100, border: `1px solid ${layers[key] ? color : 'rgba(255,255,255,0.1)'}`, background: layers[key] ? `${color}22` : 'transparent', color: layers[key] ? color : '#9090b0', fontSize: 10, fontFamily: 'var(--font-ui)', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
+                  style={{ padding: '5px 14px', borderRadius: 100, border: `1px solid ${layers[key] ? color : 'rgba(255,255,255,0.1)'}`, background: layers[key] ? `${color}22` : 'transparent', color: layers[key] ? color : 'var(--text-secondary)', fontSize: 12, fontFamily: 'var(--font-ui)', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
                   {label}
                 </motion.button>
               ))}
@@ -247,7 +250,7 @@ export default function Home() {
               <MapContainer center={[22.0, 80.0]} zoom={5} style={{ height: '100%', width: '100%' }}
                 minZoom={4} maxZoom={10} zoomControl attributionControl={false}
                 whenReady={(m) => setTimeout(() => m.target.invalidateSize(), 100)}>
-                <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" subdomains="abcd" />
+                <TileLayer url={isDark ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'} subdomains="abcd" />
                 <GeoJSON data={INDIA_GEO} style={{ fillColor: '#38bdf8', fillOpacity: 0.06, color: '#38bdf8', weight: 1, opacity: 0.3, dashArray: '5 4' }} />
 
                 {INCIDENTS.map(inc => (
@@ -330,7 +333,7 @@ export default function Home() {
             {/* Legend */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '8px 16px', borderTop: '1px solid rgba(255,102,0,0.06)', flexWrap: 'wrap' }}>
               {[['alert', t('common.alert','Alert')], ['warn', t('common.warning','Warning')], ['safe', t('common.safe','Safe')]].map(([k, l]) => (
-                <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontFamily: 'var(--font-ui)', fontWeight: 600, color: TYPE[k] }}>
+              <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, fontFamily: 'var(--font-ui)', fontWeight: 600, color: TYPE[k] }}>
                   <div style={{ width: 7, height: 7, borderRadius: '50%', background: TYPE[k], boxShadow: `0 0 6px ${TYPE[k]}` }} /> {l}
                 </div>
               ))}
@@ -353,12 +356,12 @@ export default function Home() {
                 className={`alert-card alert-card-${inc.type}`}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <div className={`alert-icon-pill alert-icon-pill-${inc.type}`}>{TYPE_ICON[inc.type]}</div>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: TYPE[inc.type] }}>
+                  <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: TYPE[inc.type] }}>
                     {inc.type === 'alert' ? t('common.alert','ALERT') : inc.type === 'warn' ? t('common.warning','WARNING') : t('common.safe','SAFE')}
                   </span>
                 </div>
-                <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', marginBottom: 4 }}>{inc.name}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{inc.desc}</div>
+                <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', marginBottom: 4 }}>{inc.name}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{inc.desc}</div>
               </motion.div>
             ))}
           </div>
@@ -373,8 +376,8 @@ export default function Home() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
           <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
             style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 10px #22c55e' }} />
-          <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 14, color: 'var(--text-primary)', letterSpacing: '0.04em' }}>LIVE PULSE</span>
-          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--text-muted)' }}>Trending topics, hashtags &amp; live cricket</span>
+          <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 16, color: 'var(--text-primary)', letterSpacing: '0.04em' }}>LIVE PULSE</span>
+          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--text-muted)' }}>Trending topics, hashtags &amp; live cricket</span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 16 }}>
@@ -383,17 +386,17 @@ export default function Home() {
           <div style={{ borderRadius: 'var(--radius)', padding: '16px 18px', background: 'linear-gradient(135deg,rgba(255,102,0,0.08),rgba(255,102,0,0.02))', border: '1px solid rgba(255,102,0,0.18)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <span style={{ fontSize: 18 }}>🔥</span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 12, color: '#FF9933', letterSpacing: '0.07em' }}>TRENDING TOPICS</span>
+              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 14, color: '#FF9933', letterSpacing: '0.07em' }}>TRENDING TOPICS</span>
             </div>
             {dashboard?.insights?.trending?.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 {dashboard.insights.trending.slice(0, 6).map((topic, i) => (
                   <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
                     style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                    <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 10, color: i < 3 ? '#FF6600' : 'var(--text-muted)', minWidth: 20 }}>#{i + 1}</span>
+                    <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 12, color: i < 3 ? '#FF6600' : 'var(--text-muted)', minWidth: 20 }}>#{i + 1}</span>
                     <div style={{ flex: 1 }}>
                       <div style={{ height: 3, borderRadius: 4, marginBottom: 3, background: `linear-gradient(90deg,${i < 3 ? '#FF6600' : '#38bdf8'},transparent)`, width: `${100 - i * 13}%`, opacity: 0.65 }} />
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: i < 3 ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: i < 3 ? 700 : 400 }}>{topic}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: i < 3 ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: i < 3 ? 700 : 400 }}>{topic}</span>
                     </div>
                   </motion.div>
                 ))}
@@ -406,7 +409,7 @@ export default function Home() {
                     <div style={{ height: 10, borderRadius: 3, width: `${w}%`, background: 'rgba(255,255,255,0.06)' }} />
                   </div>
                 ))}
-                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
                   {loadingEvents ? '⏳ Loading topics…' : '⚙️ Add Gemini key to enable AI topics'}
                 </div>
               </div>
@@ -417,7 +420,7 @@ export default function Home() {
           <div style={{ borderRadius: 'var(--radius)', padding: '16px 18px', background: 'linear-gradient(135deg,rgba(56,189,248,0.08),rgba(56,189,248,0.02))', border: '1px solid rgba(56,189,248,0.18)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <span style={{ fontSize: 18 }}>📣</span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 12, color: '#38bdf8', letterSpacing: '0.07em' }}>TRENDING HASHTAGS</span>
+              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 14, color: '#38bdf8', letterSpacing: '0.07em' }}>TRENDING HASHTAGS</span>
             </div>
             {dashboard?.hashtags?.length > 0 ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
@@ -427,8 +430,8 @@ export default function Home() {
                     whileHover={{ scale: 1.08, y: -2 }}
                     style={{
                       fontFamily: 'var(--font-ui)', fontWeight: 700,
-                      fontSize: i < 3 ? 13 : i < 6 ? 11 : 10,
-                      padding: i < 3 ? '6px 14px' : '4px 10px',
+                      fontSize: i < 3 ? 15 : i < 6 ? 13 : 12,
+                      padding: i < 3 ? '7px 16px' : '5px 12px',
                       borderRadius: 100,
                       background: i < 3
                         ? 'linear-gradient(135deg,rgba(56,189,248,0.22),rgba(56,189,248,0.08))'
@@ -449,7 +452,7 @@ export default function Home() {
                     <div key={i} style={{ height: 28, borderRadius: 100, width: w, background: 'rgba(255,255,255,0.06)' }} />
                   ))}
                 </div>
-                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--text-muted)', marginTop: 12 }}>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--text-muted)', marginTop: 12 }}>
                   {loadingEvents ? '⏳ Loading hashtags…' : '⚙️ Add Gemini key to enable AI hashtags'}
                 </div>
               </>
@@ -460,7 +463,7 @@ export default function Home() {
           <div style={{ borderRadius: 'var(--radius)', padding: '16px 18px', background: 'linear-gradient(135deg,rgba(34,197,94,0.08),rgba(34,197,94,0.02))', border: '1px solid rgba(34,197,94,0.18)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <span style={{ fontSize: 18 }}>🏏</span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 12, color: '#22c55e', letterSpacing: '0.07em' }}>LIVE CRICKET</span>
+              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 14, color: '#22c55e', letterSpacing: '0.07em' }}>LIVE CRICKET</span>
               <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.1, repeat: Infinity }}
                 style={{ marginLeft: 'auto', fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 8, padding: '2px 8px', borderRadius: 100, background: 'rgba(34,197,94,0.14)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', letterSpacing: '0.12em' }}>
                 LIVE
@@ -478,7 +481,7 @@ export default function Home() {
                           style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 9, color: '#f59e0b' }}>● LIVE</motion.span>
                       )}
                     </div>
-                    <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 12, color: 'var(--text-primary)', marginBottom: 5, lineHeight: 1.3 }}>
+                    <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 5, lineHeight: 1.3 }}>
                       {match.teams?.[0]} <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: 10 }}>vs</span> {match.teams?.[1]}
                     </div>
                     {match.score?.length > 0 && (
@@ -492,7 +495,7 @@ export default function Home() {
                         ))}
                       </div>
                     )}
-                    <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: match.matchEnded ? '#f59e0b' : 'var(--text-muted)', lineHeight: 1.4 }}>{match.status}</div>
+                    <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: match.matchEnded ? '#f59e0b' : 'var(--text-muted)', lineHeight: 1.4 }}>{match.status}</div>
                   </motion.div>
                 ))}
               </div>
@@ -505,7 +508,7 @@ export default function Home() {
                     <div style={{ height: 9, width: '65%', borderRadius: 4, background: 'rgba(255,255,255,0.06)' }} />
                   </div>
                 ))}
-                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
                   {cricketData?.error || '🏏 Add CRICAPI_KEY in .env for live scores'}
                 </div>
               </div>

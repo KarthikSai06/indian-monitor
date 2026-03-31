@@ -60,7 +60,8 @@ function triggerGoogleTranslate(langCode) {
 // ─────────────────────────────────────────────────────────────────────────────
 export default function LanguageSwitcher() {
   const [open, setOpen] = useState(false);
-  const { language, setLanguage } = useStore();
+  const { language, setLanguage, theme } = useStore();
+  const isDark = theme === 'dark';
   const ref = useRef(null);
   const current = LANGUAGES.find((l) => l.code === language) || LANGUAGES[0];
 
@@ -119,17 +120,21 @@ export default function LanguageSwitcher() {
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
           padding: '6px 12px', borderRadius: 10, cursor: 'pointer',
-          background: open ? 'rgba(255,102,0,0.1)' : 'rgba(255,255,255,0.04)',
-          border: `1px solid ${open ? 'rgba(255,102,0,0.4)' : 'rgba(255,255,255,0.08)'}`,
+          background: open
+            ? 'rgba(255,102,0,0.1)'
+            : isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+          border: `1px solid ${open
+            ? 'rgba(255,102,0,0.4)'
+            : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)'}`,
           transition: 'all 0.15s',
         }}
       >
-        <span style={{ fontSize: 16 }}>{current.flag}</span>
+        <span style={{ fontSize: 18 }}>{current.flag}</span>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0 }}>
-          <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 12, color: '#f0f0f8', lineHeight: 1 }}>
+          <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', lineHeight: 1 }}>
             {current.name}
           </span>
-          <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: 9, color: '#565680', lineHeight: 1.2 }}>
+          <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.2 }}>
             {current.native}
           </span>
         </div>
@@ -152,24 +157,26 @@ export default function LanguageSwitcher() {
             transition={{ duration: 0.15, ease: 'easeOut' }}
             style={{
               position: 'absolute', right: 0, top: 'calc(100% + 8px)', zIndex: 999,
-              minWidth: 200, maxHeight: '70vh', overflowY: 'auto',
-              background: 'rgba(12,12,24,0.98)',
-              border: '1px solid rgba(255,102,0,0.2)',
+              minWidth: 220, maxHeight: '70vh', overflowY: 'auto',
+              background: isDark ? 'rgba(12,12,24,0.98)' : 'rgba(255,255,255,0.98)',
+              border: isDark ? '1px solid rgba(255,102,0,0.2)' : '1px solid rgba(0,0,0,0.1)',
               borderRadius: 14,
-              boxShadow: '0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,102,0,0.08)',
+              boxShadow: isDark
+                ? '0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,102,0,0.08)'
+                : '0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)',
               backdropFilter: 'blur(24px)',
               scrollbarWidth: 'thin',
-              scrollbarColor: 'rgba(255,102,0,0.3) transparent',
+              scrollbarColor: isDark ? 'rgba(255,102,0,0.3) transparent' : 'rgba(255,102,0,0.2) transparent',
             }}
           >
             {/* Header */}
             <div style={{
-              padding: '10px 14px 8px',
-              borderBottom: '1px solid rgba(255,102,0,0.1)',
-              fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 10,
-              letterSpacing: '0.12em', color: '#565680',
+              padding: '12px 14px 10px',
+              borderBottom: isDark ? '1px solid rgba(255,102,0,0.1)' : '1px solid rgba(0,0,0,0.08)',
+              fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 12,
+              letterSpacing: '0.12em', color: 'var(--text-muted)',
               position: 'sticky', top: 0,
-              background: 'rgba(12,12,24,0.99)',
+              background: isDark ? 'rgba(12,12,24,0.99)' : 'rgba(255,255,255,0.99)',
               zIndex: 1,
             }}>
               🌐 SELECT LANGUAGE
@@ -185,29 +192,31 @@ export default function LanguageSwitcher() {
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.025 }}
-                  whileHover={{ backgroundColor: 'rgba(255,102,0,0.08)' }}
+                  whileHover={{ backgroundColor: isDark ? 'rgba(255,102,0,0.08)' : 'rgba(255,102,0,0.06)' }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10,
-                    width: '100%', padding: '9px 14px',
-                    background: isActive ? 'rgba(255,102,0,0.1)' : 'transparent',
+                    width: '100%', padding: '10px 14px',
+                    background: isActive
+                      ? isDark ? 'rgba(255,102,0,0.1)' : 'rgba(255,102,0,0.08)'
+                      : 'transparent',
                     border: 'none', cursor: 'pointer',
                     borderLeft: `3px solid ${isActive ? '#FF6600' : 'transparent'}`,
                     transition: 'all 0.1s',
                   }}
                 >
-                  <span style={{ fontSize: 16, flexShrink: 0, lineHeight: 1 }}>{lang.flag}</span>
+                  <span style={{ fontSize: 18, flexShrink: 0, lineHeight: 1 }}>{lang.flag}</span>
                   <div style={{ flex: 1, textAlign: 'left' }}>
-                    <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 13, color: isActive ? '#FF6600' : '#f0f0f8', lineHeight: 1.2 }}>
+                    <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 15, color: isActive ? '#FF6600' : 'var(--text-primary)', lineHeight: 1.2 }}>
                       {lang.name}
                     </div>
-                    <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: 11, color: '#565680', lineHeight: 1.2 }}>
+                    <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.2 }}>
                       {lang.native}
                     </div>
                   </div>
                   {isActive && (
                     <motion.div
                       initial={{ scale: 0 }} animate={{ scale: 1 }}
-                      style={{ width: 7, height: 7, borderRadius: '50%', background: '#FF6600', flexShrink: 0 }}
+                      style={{ width: 8, height: 8, borderRadius: '50%', background: '#FF6600', flexShrink: 0 }}
                     />
                   )}
                 </motion.button>
