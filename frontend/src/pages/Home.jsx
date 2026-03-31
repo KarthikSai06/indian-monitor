@@ -294,7 +294,6 @@ export default function Home() {
                 minZoom={4} maxZoom={10} zoomControl attributionControl={false}
                 whenReady={(m) => setTimeout(() => m.target.invalidateSize(), 100)}>
                 <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" subdomains="abcd" />
-                <GeoJSON data={INDIA_GEO} style={{ fillColor: '#38bdf8', fillOpacity: 0.06, color: '#38bdf8', weight: 1, opacity: 0.3, dashArray: '5 4' }} />
 
                 {INCIDENTS.map(inc => (
                   <CircleMarker key={inc.id} center={inc.pos} radius={10}
