@@ -1,65 +1,25 @@
-const { OpenAI } = require('openai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-let openai;
-
-function getClient() {
-  if (!openai) {
-    openai = new OpenAI({
-      baseURL: "https://openrouter.ai/api/v1",
-      apiKey: process.env.OPENROUTER_API_KEY,
-    });
-  }
-  return openai;
+// Resolve API key: prefer per-request key, fallback to env var
+function resolveKey(apiKey) {
+  const key = apiKey || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+  if (!key || key === 'your_gemini_api_key_here') throw new Error('MISSING_API_KEY');
+  return key;
 }
 
-const MODEL_NAME = 'google/gemini-2.5-flash';
-
-async function generateWithPrompt(prompt) {
-  const client = getClient();
-  const res = await client.chat.completions.create({
-    model: MODEL_NAME,
-    max_tokens: 1500,
-    messages: [{ role: 'user', content: prompt }]
-  });
-  return res.choices[0]?.message?.content || '';
+function getClient(apiKey) {
+  return new GoogleGenerativeAI(resolveKey(apiKey));
 }
 
-async function enrichArticles(articles) {
-  if (!process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY === 'your_openrouter_api_key_here') {
-    console.warn('[AI] No valid OPENROUTER_API_KEY — skipping enrichment');
-    return articles;
-  }
-  const enriched = [...articles];
-  const batchSize = 5;
-  for (let i = 0; i < articles.length; i += batchSize) {
-    const batch = articles.slice(i, i + batchSize);
-    const input = batch.map((a, idx) => ({ index: idx, title: a.title, description: a.description?.substring(0, 200) }));
-    const prompt = `You are an Indian news enrichment AI. Analyze these articles and return a JSON array.\nFor each article, return: { "index": <number>, "summary": "<2 sentence summary>", "category": "<one of: Politics|Economy|Crime|Weather|Sports|Tech|Health|Entertainment|International>", "sentiment": "<positive|negative|neutral>", "importance": <1-5>, "tags": ["tag1","tag2","tag3"] }\nOnly return the raw JSON array. No markdown, no explanation.\nArticles: ${JSON.stringify(input)}`;
-    try {
-      const text = (await generateWithPrompt(prompt)).trim();
-      const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      const enrichments = JSON.parse(jsonStr || '[]');
-      for (const e of enrichments) {
-        const idx = i + e.index;
-        if (enriched[idx]) {
-          enriched[idx] = {
-            ...enriched[idx],
-            summary: e.summary || enriched[idx].description,
-            category: e.category || 'National',
-            sentiment: e.sentiment || 'neutral',
-            importance: e.importance || 3,
-            tags: e.tags || [],
-          };
-        }
-      }
-    } catch (err) {
-      console.error(`[AI] Enrichment batch ${i / batchSize + 1} failed:`, err.message);
-    }
-  }
-  return enriched;
+async function generateWithPrompt(prompt, apiKey) {
+  const genAI = getClient(apiKey);
+  // gemini-2.0-flash — Gemini 2 Flash has full quota (2.5 Flash is rate limited)
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const result = await model.generateContent(prompt);
+  return result.response.text();
 }
 
-async function translateText(text, targetLang) {
+async function translateBatch(texts, targetLang, apiKey) {
   const langNames = {
     hi: 'Hindi', ta: 'Tamil', te: 'Telugu', kn: 'Kannada',
     bn: 'Bengali', gu: 'Gujarati', mr: 'Marathi', ml: 'Malayalam', pa: 'Punjabi',
@@ -68,49 +28,64 @@ async function translateText(text, targetLang) {
     mai: 'Maithili', doi: 'Dogri', mni: 'Manipuri', en: 'English'
   };
   const langName = langNames[targetLang] || 'Hindi';
-  const prompt = `Translate the following Indian news text to ${langName}. Return ONLY the translated text, no explanations:\n\n${text}`;
-  return (await generateWithPrompt(prompt)).trim();
+  if (!texts || texts.length === 0) return [];
+
+  const numbered = texts.map((t, i) => `[${i}] ${t}`).join('\n---\n');
+  const prompt = `Translate each of the following numbered Indian news texts to ${langName}.
+Rules:
+- Keep each item numbered with [index] prefix exactly as shown
+- Separate items with ---
+- Return ONLY the translated texts in the same numbered format
+- Do NOT add explanations, do NOT skip any item
+
+${numbered}`;
+
+  try {
+    const raw = (await generateWithPrompt(prompt, apiKey)).trim();
+    const parts = raw.split(/\n?---\n?/);
+    const results = new Array(texts.length).fill('');
+    for (const part of parts) {
+      const match = part.match(/^\[(\d+)\]\s*([\s\S]*)/);
+      if (match) {
+        const idx = parseInt(match[1], 10);
+        if (idx >= 0 && idx < texts.length) {
+          results[idx] = match[2].trim();
+        }
+      }
+    }
+    return results.map((r, i) => r || texts[i]); // fallback to original if parse fails
+  } catch (err) {
+    console.error('[AI] translateBatch error:', err.message);
+    return texts; // return originals on error
+  }
 }
 
-async function generateWeatherSummary(city, weatherData) {
+async function generateWeatherSummary(city, weatherData, apiKey) {
   const prompt = `You are a friendly Indian weather reporter. Write a 3-sentence AI forecast summary for ${city} based on this data: ${JSON.stringify(weatherData)}. Be conversational, mention how residents should prepare, and include a local touch. Return only the summary text.`;
-  return (await generateWithPrompt(prompt)).trim();
+  return (await generateWithPrompt(prompt, apiKey)).trim();
 }
 
-async function generateInsights(articles) {
-  const titles = articles.slice(0, 20).map(a => a.title);
-  const prompt = `Analyze these Indian news headlines and return a JSON object with:
-{
-  "trending": ["topic1","topic2","topic3","topic4","topic5"],
-  "sentiment": { "positive": <0-100>, "negative": <0-100>, "neutral": <0-100> },
-  "factCheck": [{"claim": "...", "verdict": "true|false|mixed"}],
-  "predicted": ["prediction1","prediction2","prediction3"]
-}
-Headlines: ${JSON.stringify(titles)}
-Return only the raw JSON.`;
-  const text = (await generateWithPrompt(prompt)).trim().replace(/```json\n?/g, '').replace(/```\n?/g, '');
-  return JSON.parse(text || '{}');
-}
-
-async function chatWithGemini(messages) {
-  const client = getClient();
+async function chatWithGemini(messages, apiKey) {
+  const genAI = getClient(apiKey);
   const systemInstruction = 'You are Bharat AI, an expert on Indian news, politics, culture, economy, and current affairs. Answer concisely and helpfully. Respond in the same language the user writes in.';
   
-  const openAIMessages = [
-    { role: 'system', content: systemInstruction },
-    ...messages
-  ];
-
-  const stream = await client.chat.completions.create({
-    model: MODEL_NAME,
-    max_tokens: 1000,
-    messages: openAIMessages,
-    stream: true,
+  const chatModel = genAI.getGenerativeModel({ 
+    model: 'gemini-2.0-flash',
+    systemInstruction: { parts: [{ text: systemInstruction }] }
   });
+
+  const formattedHistory = messages.slice(0, -1).map(m => ({
+    role: m.role === 'user' ? 'user' : 'model',
+    parts: [{ text: m.content }]
+  }));
+  const lastMessage = messages[messages.length - 1].content;
+
+  const chat = chatModel.startChat({ history: formattedHistory });
+  const stream = await chat.sendMessageStream(lastMessage);
 
   async function* wrapStream() {
     for await (const chunk of stream) {
-      const text = chunk.choices[0]?.delta?.content || '';
+      const text = chunk.text();
       if (text) yield { text: () => text };
     }
   }
@@ -118,57 +93,92 @@ async function chatWithGemini(messages) {
   return wrapStream();
 }
 
-async function generateIncidents(articles) {
-  if (!process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY === 'your_openrouter_api_key_here') {
-    return [];
-  }
+async function generateDashboardData(articles, rawEvents, apiKey) {
   const titles = articles.slice(0, 40).map(a => `${a.title} [${a.source}]`).join('\n');
-  const prompt = `You are an India incident monitoring AI. Analyze these live Indian news headlines and extract real geographic incidents happening right now in India.
+  
+  const prompt = `You are the master AI for Bharat Monitor, India's premier news dashboard.
+I will provide you with live Indian news headlines and a list of raw actual upcoming events.
 
-For each significant incident (protests, floods, accidents, cyclones, strikes, events, disasters), return a JSON array of objects:
-[
-  {
-    "id": <unique number>,
-    "name": "<City — Short incident title>",
-    "city": "<City name>",
-    "state": "<State name>",
-    "lat": <latitude as number, must be within India: 8.0 to 37.0>,
-    "lng": <longitude as number, must be within India: 68.0 to 97.5>,
-    "type": "<one of: alert|warn|safe>",
-    "desc": "<1-2 sentence description from the news>"
-  }
-]
+Your task is to analyze these simultaneously and generate a single unified JSON object with three keys: "insights", "incidents", and "events".
 
-Rules:
-- type "alert" = serious incidents (floods, accidents, violence, cyclones, disasters)
-- type "warn" = caution needed (protests, strikes, weather watch, traffic)
-- type "safe" = positive events (summits, festivals, inaugurations)
-- Only include incidents with a clear Indian city/location
-- Return 6 to 10 incidents maximum
-- Coordinates must be accurate for the named Indian city
-- Return ONLY the raw JSON array, no markdown, no explanation
+Raw Events: ${JSON.stringify(rawEvents)}
 
 Headlines:
-${titles}`;
+${titles}
 
+OUTPUT FORMAT STRICTLY AS A RAW JSON OBJECT (No markdown, no wrappers):
+{
+  "insights": {
+    "trending": ["topic1", "topic2", "topic3", "topic4", "topic5", "topic6"],
+    "sentiment": { "positive": 50, "negative": 30, "neutral": 20 },
+    "factCheck": [{"claim": "...", "verdict": "true|false|mixed"}],
+    "predicted": ["prediction1", "prediction2", "prediction3"]
+  },
+  "hashtags": ["#Budget2025", "#IPL2025", "#Monsoon", "#Rafale", "#Chandrayaan", "#Rupee", "#Politics", "#India"],
+  "incidents": [
+    {
+      "id": 1,
+      "name": "<City — Short incident title>",
+      "city": "<City name>",
+      "state": "<State name>",
+      "lat": <latitude as float, within India: 8.0 to 37.0>,
+      "lng": <longitude as float, within India: 68.0 to 97.5>,
+      "type": "<one of: alert|warn|safe>",
+      "desc": "<1-2 sentence description>"
+    }
+  ],
+  "events": [
+    {
+      "festival": "<Title of event, max 5 words>",
+      "desc": "<1-sentence summary based precisely on raw events list>",
+      "state": "<Location or 'India'>",
+      "pos": [<latitude 8-37>, <longitude 68-97.5>],
+      "month": "<e.g. 'Oct', 'Next Wk', 'Live'>",
+      "emoji": "<1 fitting emoji>",
+      "color": "<A vibrant Hex color string like '#a29bfe'>"
+    }
+  ]
+}
+
+RULES:
+- "insights" must reflect the headlines.
+- "incidents" must extract 4 to 8 active geopolitical/disaster/political incidents mentioned in the headlines. Type 'alert' for severe (floods, crashes, violence), 'warn' for caution, 'safe' for good events.
+- "events" must format ONLY the Raw Events provided into the strict UI schema above. Don't invent fake events. If location is pan-India, use pos [22.0, 80.0].
+`;
+
+  const text = (await generateWithPrompt(prompt, apiKey)).trim().replace(/```json\n?/g, '').replace(/```\n?/g, '');
+  
   try {
-    const text = (await generateWithPrompt(prompt)).trim().replace(/```json\n?/g, '').replace(/```\n?/g, '');
-    const incidents = JSON.parse(text || '[]');
-    return incidents
+    const rawData = JSON.parse(text || '{}');
+    if (!rawData.insights) rawData.insights = { trending: [], predicted: [] };
+    if (!rawData.events) rawData.events = [];
+    if (!rawData.incidents) rawData.incidents = [];
+
+    // Filter valid incidents geographically
+    rawData.incidents = rawData.incidents
       .filter(inc => inc.lat >= 8 && inc.lat <= 37 && inc.lng >= 68 && inc.lng <= 97.5)
       .map((inc, i) => ({
+        ...inc,
         id: i + 1,
-        name: inc.name || `Incident ${i + 1}`,
-        city: inc.city || '',
-        state: inc.state || '',
         pos: [parseFloat(inc.lat), parseFloat(inc.lng)],
         type: ['alert', 'warn', 'safe'].includes(inc.type) ? inc.type : 'warn',
-        desc: inc.desc || '',
       }));
+
+    return rawData;
   } catch (err) {
-    console.error('[AI] generateIncidents parse error:', err.message);
-    return [];
+    console.error('[AI] Mega-Endpoint parse error:', err.message);
+    throw err; // Let router fallback cleanly
   }
 }
 
-module.exports = { enrichArticles, translateText, generateWeatherSummary, generateInsights, chatWithGemini, generateIncidents };
+// Stub functions for backward compatibility
+async function enrichArticles(articles) { return articles; }
+async function translateText(text, targetLang, apiKey) {
+  if (!targetLang || targetLang === 'en') return text;
+  const result = await translateBatch([text], targetLang, apiKey);
+  return result[0] || text;
+}
+async function generateInsights() { return {}; }
+async function generateIncidents() { return []; }
+
+module.exports = { enrichArticles, translateText, translateBatch, generateWeatherSummary, generateDashboardData, generateInsights, chatWithGemini, generateIncidents };

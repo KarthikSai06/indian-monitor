@@ -54,9 +54,10 @@ export default function AIInsights() {
     setMessages(prev => [...prev, aiMsg]);
 
     try {
+      const apiKey = localStorage.getItem('gemini_key') || '';
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Gemini-Key': apiKey },
         body: JSON.stringify({ messages: [...messages, userMsg] }),
       });
 
@@ -202,7 +203,7 @@ export default function AIInsights() {
             </>
           ) : (
             <div className="card p-4 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-              Configure OPENROUTER_API_KEY in backend .env to enable AI insights
+              Provide your Gemini API Key in ⚙️ Settings to instantly unlock live AI Insights & Trends!
             </div>
           )}
         </div>

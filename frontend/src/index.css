@@ -10,3 +10,45 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* ─── Map Animations ─── */
+
+@keyframes radarSweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.radar-overlay-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 400; /* over basemap */
+  border-radius: 12px;
+}
+
+.radar-sweep {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 250vh; height: 250vh;
+  margin-top: -125vh; margin-left: -125vh;
+  background: conic-gradient(from 0deg, transparent 0deg, transparent 270deg, rgba(34,197,94,0.1) 320deg, rgba(34,197,94,0.3) 350deg, rgba(34,197,94,0.8) 360deg);
+  border-radius: 50%;
+  animation: radarSweep 6s linear infinite;
+  box-shadow: inset 0 0 60px rgba(34,197,94,0.15);
+}
+
+@keyframes markerPulse {
+  0% { box-shadow: 0 0 0 0 var(--pulse-color); }
+  70% { box-shadow: 0 0 0 16px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+@keyframes svgPulse {
+  0% { stroke-width: 0px; stroke-opacity: 1; }
+  100% { stroke-width: 35px; stroke-opacity: 0; }
+}
+
+.pulse-svg-alert { animation: svgPulse 1.5s infinite cubic-bezier(0.1, 0, 0.5, 1); }
+.pulse-svg-warn  { animation: svgPulse 2.0s infinite cubic-bezier(0.1, 0, 0.5, 1); }
+.pulse-svg-safe  { animation: svgPulse 2.5s infinite cubic-bezier(0.1, 0, 0.5, 1); }

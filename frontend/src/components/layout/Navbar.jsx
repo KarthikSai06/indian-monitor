@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -8,10 +7,11 @@ export default function Navbar() {
   const { t } = useTranslation();
 
   const TABS = [
-    { id: 'home', path: '/', label: t('nav.home', 'Home'), sublabel: 'Dashboard' },
-    { id: 'news', path: '/news', label: t('nav.news', 'News'), sublabel: t('nav.liveNews', 'Live Feed') },
-    { id: 'economy', path: '/economy', label: t('nav.economy', 'Global'), sublabel: 'Economy' },
-    { id: 'weather', path: '/weather', label: t('nav.weather', 'Weather'), sublabel: 'India' },
+    { id: 'home',     path: '/',         label: t('nav.home', 'Home'),     sublabel: 'Dashboard', icon: '🏠' },
+    { id: 'news',     path: '/news',     label: t('nav.news', 'News'),     sublabel: 'Live Feed', icon: '📰' },
+    { id: 'economy',  path: '/economy',  label: 'Global',                  sublabel: 'Economy',   icon: '📈' },
+    { id: 'weather',  path: '/weather',  label: t('nav.weather', 'Weather'), sublabel: 'India',   icon: '⛈️' },
+    { id: 'festivals', path: '/festivals', label: 'Festivals',             sublabel: 'Events',    icon: '🎪' },
   ];
 
   const activeId = TABS.find(t =>
@@ -99,7 +99,7 @@ export default function Navbar() {
                   {tab.label}
                 </span>
 
-                {/* Sublabel — hidden on very small screens */}
+                {/* Sublabel */}
                 <span className="hide-mobile" style={{
                   fontFamily: 'var(--font-ui)',
                   fontSize: 9,
