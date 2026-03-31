@@ -1,18 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const { translateText, translateBatch, generateInsights, chatWithGemini, generateIncidents } = require('../services/aiEnricher');
+const axios = require('axios');
+const { translateText, translateBatch, generateInsights, chatWithGemini, generateIncidents, generateDashboardData, generateWeatherSummary } = require('../services/aiEnricher');
 const { getNews } = require('../services/rssFetcher');
 
 // ─── Mega-Endpoint Cache & Mutex ───
 let dashboardCache = null;
 let dashboardCachedAt = 0;
 let dashboardPromise = null;
+let lastFailedAt = 0;
 
-function isCacheValid() {
+function isCacheValid(force) {
+  if (force) return false;
   if (!dashboardCache) return false;
   const age = Date.now() - dashboardCachedAt;
   if (age > 60 * 60 * 1000) return false; // older than 1 hour
-  // Treat cache as invalid if it has no real AI data (was built without a key)
   const hasData = (dashboardCache.incidents?.length > 0) ||
                   (dashboardCache.events?.length > 0) ||
                   (dashboardCache.insights?.trending?.length > 0);
@@ -22,57 +24,52 @@ function isCacheValid() {
 // GET /api/ai/dashboard
 router.get('/dashboard', async (req, res) => {
   const apiKey = req.headers['x-gemini-key'];
+  const force = req.query.force === '1';
   const now = Date.now();
 
-  // 1. Return Communal Cache if fresh AND has real data
-  if (isCacheValid()) {
+  // 1. Return cache if fresh and has real data
+  if (isCacheValid(force)) {
     return res.json(dashboardCache);
   }
 
-  // 2. Await active generation lock if another user triggered it
+  // 2. If recently failed (rate limited), don't hammer the API — wait 30s
+  if (!force && lastFailedAt && now - lastFailedAt < 30_000) {
+    if (dashboardCache) return res.json(dashboardCache); // return stale cache
+    return res.status(429).json({ error: 'Rate limited — retry in 30s.' });
+  }
+
+  // 3. Await active generation lock
   if (dashboardPromise) {
     try {
       const data = await dashboardPromise;
       return res.json(data);
     } catch(err) {
-      if (!apiKey) return res.status(401).json({ error: 'Cache population failed and no API key provided' });
-      // If it failed and we have a key, we'll try generating it ourselves below
+      // promise failed, fall through to re-generate below
     }
   }
 
-  // 3. If cache is stale and no key is provided, reject
-  if (!apiKey) {
-    return res.status(401).json({ error: 'MISSING_API_KEY' });
-  }
+  // 4. Use header key OR fall back to server's GOOGLE_API_KEY env var
+  // No hard reject — resolveKey() in aiEnricher handles the fallback
+  const effectiveKey = apiKey || null; // null triggers env fallback in resolveKey()
 
-  // 4. Trigger Mega-Generation with Mutex Lock
+  // 5. Trigger generation with mutex lock
   dashboardPromise = (async () => {
-    // A. Gather Raw Events
     let holidays = [];
     try {
       const { data } = await axios.get('https://date.nager.at/api/v3/NextPublicHolidays/IN', { timeout: 4000 });
       holidays = data.slice(0, 3).map(h => ({ title: h.name, type: 'Festival', date: h.date, desc: h.localName, source: 'Public Holiday' }));
     } catch(e) {}
-    
-    let newsEvents = [];
-    if (typeof extractEventsFromNews === 'function') {
-      try { newsEvents = extractEventsFromNews(); } catch(e){}
-    }
-    const rawEvents = [...holidays, ...newsEvents];
 
-    // B. Gather News Articles
     let articles = [];
     try {
       const newsPkg = getNews('national', 1, 40);
       articles = newsPkg.articles;
-    } catch(e){}
+    } catch(e) {}
 
-    // C. Execute Mega-Prompt
-    const data = await generateDashboardData(articles, rawEvents, apiKey);
-
-    // D. Commit to Communal Cache
+    const data = await generateDashboardData(articles, holidays, effectiveKey);
     dashboardCache = data;
     dashboardCachedAt = Date.now();
+    lastFailedAt = 0; // reset failure tracker
     return data;
   })();
 
@@ -80,11 +77,15 @@ router.get('/dashboard', async (req, res) => {
     const data = await dashboardPromise;
     res.json(data);
   } catch (err) {
-    console.error('[AI] Mega-Endpoint Mutex Error:', err.message);
-    const retryMsg = err.message.includes('429') ? 'Rate Limited. Wait 60s.' : 'Generation failed.';
-    res.status(500).json({ error: retryMsg });
+    console.error('[AI] Dashboard error:', err.message);
+    lastFailedAt = Date.now(); // track failure time
+    const is429 = err.message?.includes('429') || err.message?.includes('rate');
+    if (is429 && dashboardCache) {
+      // Return stale cache rather than erroring out
+      return res.json({ ...dashboardCache, _stale: true });
+    }
+    res.status(is429 ? 429 : 500).json({ error: is429 ? 'Rate limited — wait 60s then refresh.' : 'Generation failed.' });
   } finally {
-    // Release the lock
     dashboardPromise = null;
   }
 });
@@ -92,12 +93,13 @@ router.get('/dashboard', async (req, res) => {
 // POST /api/ai/translate-batch — translate an array of texts in one call
 router.post('/translate-batch', async (req, res) => {
   try {
+    const apiKey = req.headers['x-gemini-key'];
     const { texts, targetLang } = req.body;
     if (!texts || !Array.isArray(texts) || !targetLang) {
       return res.status(400).json({ error: 'texts (array) and targetLang are required' });
     }
     if (targetLang === 'en') return res.json({ translations: texts });
-    const translations = await translateBatch(texts, targetLang);
+    const translations = await translateBatch(texts, targetLang, apiKey);
     res.json({ translations });
   } catch (err) {
     console.error('[AI] translate-batch error:', err.message);
@@ -131,15 +133,19 @@ router.post('/chat', async (req, res) => {
     res.end();
   } catch (err) {
     console.error('[AI Chat Error]', err.message || err);
-    let msg = 'AI service error';
-    if (err.message?.includes('429')) msg = 'API rate limited — please wait a moment and try again.';
-    if (err.message?.includes('API_KEY')) msg = 'Invalid Gemini API Key.';
+    const isRateLimit = err.message?.includes('429') || err.message?.includes('rate');
+    const isInvalidKey = err.message?.includes('API_KEY') || err.message?.includes('API key');
+    const msg = isRateLimit
+      ? 'Rate limited — please wait a moment and try again.'
+      : isInvalidKey
+        ? 'Invalid Gemini API Key.'
+        : 'AI service error';
 
     if (res.headersSent) {
       res.write(`data: ${JSON.stringify({ error: msg })}\n\n`);
       res.end();
     } else {
-      res.status(500).json({ error: msg });
+      res.status(isRateLimit ? 429 : isInvalidKey ? 401 : 500).json({ error: msg });
     }
   }
 });

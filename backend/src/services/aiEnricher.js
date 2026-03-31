@@ -1,14 +1,25 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-function getClient(apiKey) {
-  if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-    throw new Error('MISSING_API_KEY');
-  }
-  const genAI = new GoogleGenerativeAI(apiKey);
-  return genAI;
+// Resolve API key: prefer per-request key, fallback to env var
+function resolveKey(apiKey) {
+  const key = apiKey || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+  if (!key || key === 'your_gemini_api_key_here') throw new Error('MISSING_API_KEY');
+  return key;
 }
 
-async function translateBatch(texts, targetLang) {
+function getClient(apiKey) {
+  return new GoogleGenerativeAI(resolveKey(apiKey));
+}
+
+async function generateWithPrompt(prompt, apiKey) {
+  const genAI = getClient(apiKey);
+  // gemini-2.0-flash — Gemini 2 Flash has full quota (2.5 Flash is rate limited)
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const result = await model.generateContent(prompt);
+  return result.response.text();
+}
+
+async function translateBatch(texts, targetLang, apiKey) {
   const langNames = {
     hi: 'Hindi', ta: 'Tamil', te: 'Telugu', kn: 'Kannada',
     bn: 'Bengali', gu: 'Gujarati', mr: 'Marathi', ml: 'Malayalam', pa: 'Punjabi',
@@ -30,7 +41,7 @@ Rules:
 ${numbered}`;
 
   try {
-    const raw = (await generateWithPrompt(prompt)).trim();
+    const raw = (await generateWithPrompt(prompt, apiKey)).trim();
     const parts = raw.split(/\n?---\n?/);
     const results = new Array(texts.length).fill('');
     for (const part of parts) {
@@ -49,9 +60,9 @@ ${numbered}`;
   }
 }
 
-async function generateWeatherSummary(city, weatherData) {
+async function generateWeatherSummary(city, weatherData, apiKey) {
   const prompt = `You are a friendly Indian weather reporter. Write a 3-sentence AI forecast summary for ${city} based on this data: ${JSON.stringify(weatherData)}. Be conversational, mention how residents should prepare, and include a local touch. Return only the summary text.`;
-  return (await generateWithPrompt(prompt)).trim();
+  return (await generateWithPrompt(prompt, apiKey)).trim();
 }
 
 async function chatWithGemini(messages, apiKey) {
@@ -59,7 +70,7 @@ async function chatWithGemini(messages, apiKey) {
   const systemInstruction = 'You are Bharat AI, an expert on Indian news, politics, culture, economy, and current affairs. Answer concisely and helpfully. Respond in the same language the user writes in.';
   
   const chatModel = genAI.getGenerativeModel({ 
-    model: "gemini-2.5-flash",
+    model: 'gemini-2.0-flash',
     systemInstruction: { parts: [{ text: systemInstruction }] }
   });
 
@@ -160,4 +171,14 @@ RULES:
   }
 }
 
-module.exports = { enrichArticles, translateText, translateBatch, generateWeatherSummary, generateInsights, chatWithGemini, generateIncidents };
+// Stub functions for backward compatibility
+async function enrichArticles(articles) { return articles; }
+async function translateText(text, targetLang, apiKey) {
+  if (!targetLang || targetLang === 'en') return text;
+  const result = await translateBatch([text], targetLang, apiKey);
+  return result[0] || text;
+}
+async function generateInsights() { return {}; }
+async function generateIncidents() { return []; }
+
+module.exports = { enrichArticles, translateText, translateBatch, generateWeatherSummary, generateDashboardData, generateInsights, chatWithGemini, generateIncidents };

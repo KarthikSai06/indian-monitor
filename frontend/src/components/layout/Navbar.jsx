@@ -7,15 +7,11 @@ export default function Navbar() {
   const { t } = useTranslation();
 
   const TABS = [
-    { id: 'home', path: '/', label: t('nav.home', 'Home'), sublabel: 'Dashboard', icon: '🏠' },
-    { id: 'news', path: '/news', label: t('nav.news', 'News'), sublabel: t('nav.liveNews', 'Live Feed'), icon: '📰' },
-    { id: 'economy', path: '/economy', label: t('nav.economy', 'Economy'), sublabel: t('nav.markets', '& Markets'), icon: '📈' },
-    { id: 'weather', path: '/weather', label: t('nav.weather', 'Weather'), sublabel: 'India', icon: '⛈️' },
-    { id: 'home', path: '/', label: t('nav.home', 'Home'), sublabel: 'Dashboard' },
-    { id: 'news', path: '/news', label: t('nav.news', 'News'), sublabel: t('nav.liveNews', 'Live Feed') },
-    { id: 'economy', path: '/economy', label: t('nav.economy', 'Global'), sublabel: 'Economy' },
-    { id: 'weather', path: '/weather', label: t('nav.weather', 'Weather'), sublabel: 'India' },
-    { id: 'festivals', path: '/festivals', label: 'Festivals', sublabel: 'Events' },
+    { id: 'home',     path: '/',         label: t('nav.home', 'Home'),     sublabel: 'Dashboard', icon: '🏠' },
+    { id: 'news',     path: '/news',     label: t('nav.news', 'News'),     sublabel: 'Live Feed', icon: '📰' },
+    { id: 'economy',  path: '/economy',  label: 'Global',                  sublabel: 'Economy',   icon: '📈' },
+    { id: 'weather',  path: '/weather',  label: t('nav.weather', 'Weather'), sublabel: 'India',   icon: '⛈️' },
+    { id: 'festivals', path: '/festivals', label: 'Festivals',             sublabel: 'Events',    icon: '🎪' },
   ];
 
   const activeId = TABS.find(t =>

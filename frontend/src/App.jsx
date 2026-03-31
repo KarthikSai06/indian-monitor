@@ -26,40 +26,114 @@ const queryClient = new QueryClient({
 
 import ScreenLoader from './components/ScreenLoader';
 
+// ── Ashoka Chakra transition overlay ──────────────────────────────────────
+function PageTransitionOverlay({ visible }) {
+  const cx = 56, cy = 56, outerR = 48, innerR = 13;
+  const spokes = [...Array(24)].map((_, i) => {
+    const a = (i * 15 * Math.PI) / 180;
+    return {
+      x1: cx + innerR * Math.cos(a - Math.PI / 2),
+      y1: cy + innerR * Math.sin(a - Math.PI / 2),
+      x2: cx + outerR * Math.cos(a - Math.PI / 2),
+      y2: cy + outerR * Math.sin(a - Math.PI / 2),
+    };
+  });
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          key="page-transition"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 8000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(5,5,15,0.75)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+            pointerEvents: 'none',
+          }}
+        >
+          {/* Chakra — no white disc, spins directly on dark backdrop */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {/* Spinning Chakra */}
+            <motion.svg
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1.2, ease: 'linear', repeat: Infinity }}
+              width={110} height={110} viewBox="0 0 112 112"
+              style={{ filter: 'drop-shadow(0 0 14px rgba(255,153,0,0.7)) drop-shadow(0 0 4px rgba(255,153,0,0.9))' }}
+            >
+              <circle cx={cx} cy={cy} r={outerR} fill="none" stroke="#FF9933" strokeWidth={2.8} />
+              <circle cx={cx} cy={cy} r={innerR} fill="#FF9933" />
+              {spokes.map((s, i) => (
+                <line key={i} x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2}
+                  stroke="#FF9933" strokeWidth={2} strokeLinecap="round" />
+              ))}
+              <circle cx={cx} cy={cy} r={5.5} fill="#FFD580" />
+            </motion.svg>
+
+            {/* Pulsing glow behind chakra */}
+            <motion.div
+              animate={{ opacity: [0.3, 0.7, 0.3], scale: [0.85, 1.2, 0.85] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              style={{
+                position: 'absolute', inset: -20, borderRadius: '50%',
+                background: 'radial-gradient(ellipse, rgba(255,153,0,0.18), rgba(255,102,0,0.06), transparent 70%)',
+                pointerEvents: 'none',
+              }}
+            />
+          </div>
+
+          {/* Tricolor bottom strip */}
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, display: 'flex' }}>
+            <div style={{ flex: 1, background: '#FF9933' }} />
+            <div style={{ flex: 1, background: '#FFFFFF' }} />
+            <div style={{ flex: 1, background: '#138808' }} />
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 function AnimatedRoutes() {
   const location = useLocation();
-  // ── Route Transition Logic ──
   const [navigating, setNavigating] = React.useState(false);
   const prevLoc = React.useRef(location.pathname);
 
   React.useEffect(() => {
     if (prevLoc.current !== location.pathname) {
       setNavigating(true);
-      const timer = setTimeout(() => setNavigating(false), 450); // Show Ashoka Chakra for 450ms
+      const timer = setTimeout(() => setNavigating(false), 500);
       prevLoc.current = location.pathname;
       return () => clearTimeout(timer);
     }
   }, [location.pathname]);
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/"         element={<Home />} />
-        <Route path="/news"     element={<News />} />
-        <Route path="/economy"  element={<GlobalEconomy />} />
-        <Route path="/weather"  element={<Weather />} />
-        <Route path="/festivals" element={<Festivals />} />
-        {/* Legacy redirects */}
-        <Route path="/map"          element={<Home />} />
-        <Route path="/live"         element={<News />} />
-        <Route path="/ai"           element={<Home />} />
-        <Route path="/webcams"      element={<Home />} />
-        <Route path="/markets"      element={<GlobalEconomy />} />
-        <Route path="/entertainment" element={<News />} />
-        <Route path="/current-affairs" element={<News />} />
-        <Route path="*"             element={<Home />} />
-      </Routes>
-    </AnimatePresence>
+    <>
+      <PageTransitionOverlay visible={navigating} />
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/"              element={<Home />} />
+          <Route path="/news"          element={<News />} />
+          <Route path="/economy"       element={<GlobalEconomy />} />
+          <Route path="/weather"       element={<Weather />} />
+          <Route path="/festivals"     element={<Festivals />} />
+          <Route path="/map"           element={<Home />} />
+          <Route path="/live"          element={<News />} />
+          <Route path="/ai"            element={<Home />} />
+          <Route path="/webcams"       element={<Home />} />
+          <Route path="/markets"       element={<GlobalEconomy />} />
+          <Route path="/entertainment" element={<News />} />
+          <Route path="/current-affairs" element={<News />} />
+          <Route path="*"              element={<Home />} />
+        </Routes>
+      </AnimatePresence>
+    </>
   );
 }
 
