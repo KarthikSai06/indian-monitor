@@ -16,6 +16,7 @@ import Home from './pages/Home';
 import News from './pages/News';
 import EconomyMarkets from './pages/EconomyMarkets';
 import Weather from './pages/Weather';
+import Festivals from './pages/Festivals';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } },
@@ -30,6 +31,7 @@ function AnimatedRoutes() {
         <Route path="/news"     element={<News />} />
         <Route path="/economy"  element={<EconomyMarkets />} />
         <Route path="/weather"  element={<Weather />} />
+        <Route path="/festivals" element={<Festivals />} />
         {/* Legacy redirects */}
         <Route path="/map"          element={<Home />} />
         <Route path="/live"         element={<News />} />

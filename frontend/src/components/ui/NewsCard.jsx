@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import useStore from '../../store/useStore';
+import { getCached, setCached, hasCached } from '../../lib/translationCache';
 import { translateText } from '../../lib/api';
 
 function timeAgo(dateStr) {
@@ -24,23 +25,41 @@ const CAT_COLORS = {
 function CompactCard({ article, delay = 0 }) {
   const { t } = useTranslation();
   const { language } = useStore();
-  const [translated, setTranslated] = useState(null);
-  const [isTranslated, setIsTranslated] = useState(false);
-  const [translating, setTranslating] = useState(false);
+  const cacheKey = article.id || article.link || article.title?.slice(0, 40);
+  const [translated, setTranslated] = useState(() => hasCached(language, cacheKey) ? getCached(language, cacheKey) : null);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const catColor = CAT_COLORS[article.category] || '#475569';
 
-  const handleTranslate = async () => {
-    if (isTranslated) { setIsTranslated(false); setTranslated(null); return; }
-    setTranslating(true);
-    try {
-      const text = `${article.title}\n\n${article.summary || ''}`;
-      const { translated: tx } = await translateText(text, language);
-      const [txTitle, ...txBody] = tx.split('\n\n');
-      setTranslated({ title: txTitle, body: txBody.join('\n\n') });
-      setIsTranslated(true);
-    } catch { } finally { setTranslating(false); }
-  };
+  // Auto-translate when language changes (non-English)
+  useEffect(() => {
+    if (language === 'en') {
+      setTranslated(null);
+      return;
+    }
+    if (hasCached(language, cacheKey)) {
+      setTranslated(getCached(language, cacheKey));
+      return;
+    }
+    // Auto-translate on mount if language is set
+    let cancelled = false;
+    setIsTranslating(true);
+    const text = `${article.title}\n\n${article.summary || article.description || ''}`;
+    translateText(text, language)
+      .then(({ translated: tx }) => {
+        if (cancelled) return;
+        const [txTitle, ...txBody] = tx.split('\n\n');
+        const result = { title: txTitle.trim(), body: txBody.join('\n\n').trim() };
+        setCached(language, cacheKey, result);
+        setTranslated(result);
+      })
+      .catch(() => {}) // silently fallback to original
+      .finally(() => { if (!cancelled) setIsTranslating(false); });
+    return () => { cancelled = true; };
+  }, [language, cacheKey]); // re-run when language changes
+
+  const displayTitle = translated?.title || article.title;
+  const displaySummary = translated?.body || article.summary;
 
   return (
     <motion.article
@@ -54,9 +73,10 @@ function CompactCard({ article, delay = 0 }) {
         borderBottom: '1px solid rgba(255,102,0,0.08)',
         cursor: 'pointer',
         transition: 'all 0.15s',
+        opacity: isTranslating ? 0.6 : 1,
       }}
     >
-      {/* Thumbnail — always rendered for consistent layout */}
+      {/* Thumbnail */}
       <div style={{ flexShrink: 0, width: 72, height: 56, borderRadius: 8, overflow: 'hidden', background: 'var(--bg-card2)' }}>
         {article.thumbnail ? (
           <img src={article.thumbnail} alt="" loading="lazy"
@@ -86,34 +106,31 @@ function CompactCard({ article, delay = 0 }) {
               letterSpacing: '0.06em', whiteSpace: 'nowrap',
             }}>{article.category}</span>
           )}
+          {translated && language !== 'en' && (
+            <span style={{
+              fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 9,
+              padding: '1px 6px', borderRadius: 4,
+              background: 'rgba(34,197,94,0.1)', color: '#4ade80',
+              border: '1px solid rgba(34,197,94,0.2)',
+            }}>🌐 {t('common.translated', 'Translated')}</span>
+          )}
           <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: 10, color: 'var(--text-muted)', marginLeft: 'auto', whiteSpace: 'nowrap' }}>
             {article.source} · {timeAgo(article.pubDate)}
           </span>
         </div>
         <h3 style={{
           fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 13,
-          color: 'var(--text-primary)', lineHeight: 1.4,
+          color: isTranslating ? 'var(--text-muted)' : 'var(--text-primary)', lineHeight: 1.4,
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
           marginBottom: 4,
         }}>
-          {translated?.title || article.title}
+          {isTranslating ? '⏳ Translating…' : displayTitle}
         </h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <a href={article.link} target="_blank" rel="noopener noreferrer"
             style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 11, color: 'var(--saffron)', textDecoration: 'none' }}>
-            Read More →
+            {t('common.readMore', 'Read More')} →
           </a>
-          {language !== 'en' && (
-            <button onClick={handleTranslate} disabled={translating}
-              style={{
-                fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 11,
-                padding: '2px 8px', borderRadius: 6, cursor: 'pointer',
-                border: `1px solid ${isTranslated ? 'var(--green)' : 'var(--border)'}`,
-                color: isTranslated ? '#4ade80' : 'var(--text-muted)', background: 'transparent',
-              }}>
-              {translating ? '…' : isTranslated ? '↩ Original' : '🌐 Translate'}
-            </button>
-          )}
         </div>
       </div>
     </motion.article>
@@ -123,7 +140,32 @@ function CompactCard({ article, delay = 0 }) {
 // ─── Featured large card (for first article) ─────────────────────────────
 function FeaturedCard({ article }) {
   const { t } = useTranslation();
+  const { language } = useStore();
+  const cacheKey = (article.id || article.link || article.title?.slice(0, 40)) + '_featured';
+  const [translated, setTranslated] = useState(() => hasCached(language, cacheKey) ? getCached(language, cacheKey) : null);
+  const [isTranslating, setIsTranslating] = useState(false);
+
   const catColor = CAT_COLORS[article.category] || '#475569';
+
+  useEffect(() => {
+    if (language === 'en') { setTranslated(null); return; }
+    if (hasCached(language, cacheKey)) { setTranslated(getCached(language, cacheKey)); return; }
+    let cancelled = false;
+    setIsTranslating(true);
+    const text = `${article.title}\n\n${article.summary || article.description || ''}`;
+    translateText(text, language)
+      .then(({ translated: tx }) => {
+        if (cancelled) return;
+        const [txTitle, ...txBody] = tx.split('\n\n');
+        const result = { title: txTitle.trim(), body: txBody.join('\n\n').trim() };
+        setCached(language, cacheKey, result);
+        setTranslated(result);
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setIsTranslating(false); });
+    return () => { cancelled = true; };
+  }, [language, cacheKey]);
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
@@ -134,6 +176,8 @@ function FeaturedCard({ article }) {
         borderRadius: 14, border: '1px solid var(--border)',
         background: 'rgba(14,14,30,0.95)',
         cursor: 'pointer', marginBottom: 4,
+        opacity: isTranslating ? 0.7 : 1,
+        transition: 'opacity 0.2s',
       }}
     >
       {article.thumbnail && (
@@ -143,20 +187,30 @@ function FeaturedCard({ article }) {
         </div>
       )}
       <div style={{ flex: 1, padding: '20px 20px' }}>
-        {article.category && (
-          <span style={{
-            fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 10, letterSpacing: '0.08em',
-            padding: '2px 8px', borderRadius: 4, marginBottom: 10, display: 'inline-block',
-            background: catColor + '22', color: catColor, border: `1px solid ${catColor}44`,
-          }}>{article.category}</span>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+          {article.category && (
+            <span style={{
+              fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 10, letterSpacing: '0.08em',
+              padding: '2px 8px', borderRadius: 4,
+              background: catColor + '22', color: catColor, border: `1px solid ${catColor}44`,
+            }}>{article.category}</span>
+          )}
+          {translated && language !== 'en' && (
+            <span style={{
+              fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 9,
+              padding: '2px 8px', borderRadius: 4,
+              background: 'rgba(34,197,94,0.1)', color: '#4ade80',
+              border: '1px solid rgba(34,197,94,0.2)',
+            }}>🌐 {t('common.translated', 'Translated')}</span>
+          )}
+        </div>
         <h2 style={{
           fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: 18, lineHeight: 1.4,
-          color: 'var(--text-primary)', marginBottom: 8,
-        }}>{article.title}</h2>
-        {article.summary && (
+          color: isTranslating ? 'var(--text-muted)' : 'var(--text-primary)', marginBottom: 8,
+        }}>{isTranslating ? '⏳ Translating…' : (translated?.title || article.title)}</h2>
+        {(translated?.body || article.summary) && (
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 12 }}>
-            {article.summary?.substring(0, 220)}…
+            {(translated?.body || article.summary)?.substring(0, 220)}…
           </p>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -166,7 +220,7 @@ function FeaturedCard({ article }) {
               textDecoration: 'none', padding: '6px 16px', borderRadius: 8,
               background: 'var(--saffron)',
             }}>
-            Read Full Story →
+            {t('common.readMore', 'Read More')} →
           </a>
           <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: 11, color: 'var(--text-muted)' }}>
             {article.source} · {timeAgo(article.pubDate)}

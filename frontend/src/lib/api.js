@@ -17,6 +17,9 @@ export const fetchLiveMarkets = () =>
 export const translateText = (text, targetLang) =>
   api.post('/ai/translate', { text, targetLang }).then(r => r.data);
 
+export const translateBatch = (texts, targetLang) =>
+  api.post('/ai/translate-batch', { texts, targetLang }).then(r => r.data);
+
 export const fetchInsights = () =>
   api.get('/ai/insights').then(r => r.data);
 
