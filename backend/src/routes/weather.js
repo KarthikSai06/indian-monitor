@@ -26,11 +26,27 @@ const WMO_CODES = {
 
 // GET /api/weather/:city
 router.get('/:city', async (req, res) => {
-  const cityKey = req.params.city.toLowerCase();
-  const city = CITIES[cityKey];
-  if (!city) return res.status(404).json({ error: 'City not found', available: Object.keys(CITIES) });
+  const queryCity = req.params.city.trim().toLowerCase();
+  let city = CITIES[queryCity];
 
   try {
+    // If city is not in our hardcoded list, query the Geocoding API dynamically
+    if (!city) {
+      const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(queryCity)}&count=1&language=en&format=json`;
+      const { data: geoData } = await axios.get(geoUrl, { timeout: 8000 });
+      
+      if (!geoData.results || geoData.results.length === 0) {
+        return res.status(404).json({ error: `City '${req.params.city}' not found.` });
+      }
+      
+      const match = geoData.results[0];
+      city = { 
+        lat: match.latitude, 
+        lon: match.longitude, 
+        name: match.name + (match.admin1 ? `, ${match.admin1}` : '') 
+      };
+    }
+
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weathercode,apparent_temperature&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max&timezone=Asia/Kolkata&forecast_days=7`;
     const { data } = await axios.get(url, { timeout: 8000 });
     const wmo = WMO_CODES[data.current.weathercode] || { label: 'Unknown', emoji: '🌡️' };
@@ -46,6 +62,8 @@ router.get('/:city', async (req, res) => {
 
     res.json({
       city: city.name,
+      lat: city.lat,
+      lon: city.lon,
       current: {
         temp: Math.round(data.current.temperature_2m),
         feelsLike: Math.round(data.current.apparent_temperature),
