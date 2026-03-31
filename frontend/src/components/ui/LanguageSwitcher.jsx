@@ -103,8 +103,10 @@ export default function LanguageSwitcher() {
   // ── Handle language selection ──────────────────────────────────────────────
   const select = (lang) => {
     setLanguage(lang.code);
-    triggerGoogleTranslate(lang.gtCode);
+    setGoogleTranslateCookie(lang.gtCode);
     setOpen(false);
+    // Hard reload so the Loader animation plays and translation is fully applied
+    window.location.reload();
   };
 
   return (

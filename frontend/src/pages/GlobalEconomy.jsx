@@ -68,6 +68,23 @@ const COMMODITIES = [
   { id: 'Nat Gas', val: 1.85, pct: -2.30, unit: 'USD/MMBtu', history: generateTrend(1.9, 20) },
 ];
 
+const CURRENCIES = [
+  { id: 'INR', flag: '🇮🇳', name: 'Indian Rupee',      val: 83.42,   pct: -0.12 },
+  { id: 'EUR', flag: '🇪🇺', name: 'Euro',               val: 0.9215,  pct: +0.08 },
+  { id: 'GBP', flag: '🇬🇧', name: 'British Pound',      val: 0.7892,  pct: +0.15 },
+  { id: 'JPY', flag: '🇯🇵', name: 'Japanese Yen',       val: 151.62,  pct: -0.31 },
+  { id: 'CNY', flag: '🇨🇳', name: 'Chinese Yuan',       val: 7.2415,  pct: -0.05 },
+  { id: 'CHF', flag: '🇨🇭', name: 'Swiss Franc',        val: 0.9014,  pct: +0.20 },
+  { id: 'CAD', flag: '🇨🇦', name: 'Canadian Dollar',    val: 1.3612,  pct: -0.09 },
+  { id: 'AUD', flag: '🇦🇺', name: 'Australian Dollar',  val: 1.5430,  pct: +0.18 },
+  { id: 'SGD', flag: '🇸🇬', name: 'Singapore Dollar',   val: 1.3480,  pct: +0.07 },
+  { id: 'AED', flag: '🇦🇪', name: 'UAE Dirham',         val: 3.6725,  pct: 0.00  },
+  { id: 'SAR', flag: '🇸🇦', name: 'Saudi Riyal',        val: 3.7502,  pct: 0.00  },
+  { id: 'BRL', flag: '🇧🇷', name: 'Brazilian Real',     val: 4.9720,  pct: -0.55 },
+  { id: 'KRW', flag: '🇰🇷', name: 'South Korean Won',   val: 1330.5,  pct: -0.22 },
+  { id: 'MXN', flag: '🇲🇽', name: 'Mexican Peso',       val: 17.045,  pct: +0.34 },
+];
+
 const ECONOMIC_INDICATORS = [
   { country: 'USA', gdp: '2.5%', inf: '3.1%', rate: '5.50%', unemp: '3.8%' },
   { country: 'India', gdp: '7.6%', inf: '5.1%', rate: '6.50%', unemp: '7.1%' },
@@ -114,6 +131,7 @@ export default function GlobalEconomy() {
   const [filter, setFilter] = useState('All');
   const [indexes, setIndexes] = useState(INITIAL_INDEXES);
   const [commodities, setCommodities] = useState(COMMODITIES);
+  const [currencies, setCurrencies] = useState(CURRENCIES);
   const [activeNav, setActiveNav] = useState(0);
   const isMobile = useIsMobile();
   const [liveIdx, setLiveIdx] = useState([]);
@@ -150,6 +168,11 @@ export default function GlobalEconomy() {
         const newVal = c.val * (1 + change);
         const newHist = [...c.history.slice(1), { time: 'Now', value: newVal }];
         return { ...c, val: newVal, history: newHist, pct: c.pct + change * 100 };
+      }));
+      setCurrencies(prev => prev.map(c => {
+        const change = (Math.random() - 0.5) * 0.0008;
+        const newVal = c.val * (1 + change);
+        return { ...c, val: newVal, pct: +(c.pct + change * 100).toFixed(3) };
       }));
     }, 2500);
     return () => clearInterval(int);
@@ -439,6 +462,38 @@ export default function GlobalEconomy() {
                     <div style={{ fontSize: 10, color: '#64748b' }}>{c.unit}</div>
                     <div style={{ fontSize: 11, fontWeight: 600, color: c.pct >= 0 ? '#10b981' : '#ef4444' }}>
                       {c.pct >= 0 ? '+' : ''}{c.pct.toFixed(2)}%
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ─ Currency Monitor ─ */}
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ color: '#0ea5e9', fontSize: 14 }}>💱</span> Currency Monitor
+              <span style={{ marginLeft: 'auto', fontSize: 9, color: '#3b82f6', background: 'rgba(59,130,246,0.1)', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>vs USD</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {currencies.map(c => (
+                <div key={c.id} style={{
+                  padding: '10px 12px', background: 'rgba(255,255,255,0.02)',
+                  borderRadius: '10px', border: '1px solid rgba(255,255,255,0.04)',
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  transition: 'background 0.2s'
+                }}>
+                  <span style={{ fontSize: 18, lineHeight: 1 }}>{c.flag}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0' }}>{c.id}</div>
+                    <div style={{ fontSize: 10, color: '#475569', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'Rajdhani', color: '#e2e8f0' }}>
+                      {c.val < 10 ? c.val.toFixed(4) : c.val < 100 ? c.val.toFixed(2) : c.val.toFixed(1)}
+                    </div>
+                    <div style={{ fontSize: 10, fontWeight: 600, color: c.pct > 0 ? '#10b981' : c.pct < 0 ? '#ef4444' : '#64748b' }}>
+                      {c.pct > 0 ? '▲' : c.pct < 0 ? '▼' : '─'} {Math.abs(c.pct).toFixed(2)}%
                     </div>
                   </div>
                 </div>
