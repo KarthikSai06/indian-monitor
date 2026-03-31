@@ -15,6 +15,7 @@ import useStore from './store/useStore';
 import Home from './pages/Home';
 import News from './pages/News';
 import EconomyMarkets from './pages/EconomyMarkets';
+import GlobalEconomy from './pages/GlobalEconomy';
 import Weather from './pages/Weather';
 
 const queryClient = new QueryClient({
@@ -28,14 +29,14 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/"         element={<Home />} />
         <Route path="/news"     element={<News />} />
-        <Route path="/economy"  element={<EconomyMarkets />} />
+        <Route path="/economy"  element={<GlobalEconomy />} />
         <Route path="/weather"  element={<Weather />} />
         {/* Legacy redirects */}
         <Route path="/map"          element={<Home />} />
         <Route path="/live"         element={<News />} />
         <Route path="/ai"           element={<Home />} />
         <Route path="/webcams"      element={<Home />} />
-        <Route path="/markets"      element={<EconomyMarkets />} />
+        <Route path="/markets"      element={<GlobalEconomy />} />
         <Route path="/entertainment" element={<News />} />
         <Route path="/current-affairs" element={<News />} />
         <Route path="*"             element={<Home />} />

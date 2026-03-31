@@ -82,7 +82,7 @@ export default function AIInsights() {
                 return next;
               });
             }
-          } catch {}
+          } catch { }
         }
       }
       setMessages(prev => {
@@ -148,7 +148,7 @@ export default function AIInsights() {
 
           {isLoading ? (
             <>
-              {[1,2,3].map(i => <div key={i} className="card p-4 h-24 skeleton" />)}
+              {[1, 2, 3].map(i => <div key={i} className="card p-4 h-24 skeleton" />)}
             </>
           ) : insights ? (
             <>
@@ -157,7 +157,7 @@ export default function AIInsights() {
                 <div className="font-rajdhani font-bold text-sm mb-3" style={{ color: 'var(--saffron)' }}>🔥 Trending Topics</div>
                 {(insights.trending || []).map((t, i) => (
                   <div key={i} className="flex items-center gap-2 mb-2 text-sm">
-                    <span className="font-bold w-5 flex-shrink-0" style={{ color: 'var(--saffron)' }}>{i+1}</span>
+                    <span className="font-bold w-5 flex-shrink-0" style={{ color: 'var(--saffron)' }}>{i + 1}</span>
                     <span style={{ color: 'var(--text-secondary)' }}>{t}</span>
                   </div>
                 ))}
