@@ -50,15 +50,21 @@ export default function Loader({ onComplete }) {
           <rect x="0" y="0" width="108" height="24" fill="#FF9933" />
           <rect x="0" y="24" width="108" height="24" fill="#FFFFFF" />
           <rect x="0" y="48" width="108" height="24" fill="#138808" />
-          {/* Ashoka Chakra */}
-          <circle cx="54" cy="36" r="10" fill="none" stroke="#000080" strokeWidth="1.5" />
-          {[...Array(24)].map((_, i) => {
-            const a = (i * 15 * Math.PI) / 180;
-            return <line key={i} x1={54} y1={36}
-              x2={54 + 10 * Math.cos(a - Math.PI / 2)}
-              y2={36 + 10 * Math.sin(a - Math.PI / 2)}
-              stroke="#000080" strokeWidth="0.9" />;
-          })}
+          {/* Animated Ashoka Chakra */}
+          <motion.g
+            animate={{ rotate: 360 }}
+            transition={{ duration: 8, ease: "linear", repeat: Infinity }}
+            style={{ transformOrigin: '54px 36px' }}
+          >
+            <circle cx="54" cy="36" r="10" fill="none" stroke="#000080" strokeWidth="1.5" />
+            {[...Array(24)].map((_, i) => {
+              const a = (i * 15 * Math.PI) / 180;
+              return <line key={i} x1={54} y1={36}
+                x2={54 + 10 * Math.cos(a - Math.PI / 2)}
+                y2={36 + 10 * Math.sin(a - Math.PI / 2)}
+                stroke="#000080" strokeWidth="0.9" />;
+            })}
+          </motion.g>
         </svg>
         {/* Rotating Chakra glow */}
         <motion.div

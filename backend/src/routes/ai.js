@@ -3,65 +3,89 @@ const router = express.Router();
 const { translateText, translateBatch, generateInsights, chatWithGemini, generateIncidents } = require('../services/aiEnricher');
 const { getNews } = require('../services/rssFetcher');
 
-// Cache for insights (refresh every 30 min)
-let insightsCache = null;
-let insightsCachedAt = 0;
+// ─── Mega-Endpoint Cache & Mutex ───
+let dashboardCache = null;
+let dashboardCachedAt = 0;
+let dashboardPromise = null;
 
-// Cache for incidents (refresh every 15 min)
-let incidentsCache = null;
-let incidentsCachedAt = 0;
+function isCacheValid() {
+  if (!dashboardCache) return false;
+  const age = Date.now() - dashboardCachedAt;
+  if (age > 60 * 60 * 1000) return false; // older than 1 hour
+  // Treat cache as invalid if it has no real AI data (was built without a key)
+  const hasData = (dashboardCache.incidents?.length > 0) ||
+                  (dashboardCache.events?.length > 0) ||
+                  (dashboardCache.insights?.trending?.length > 0);
+  return hasData;
+}
 
-// GET /api/ai/insights — Gemini-powered trending topics from live news
-router.get('/insights', async (req, res) => {
-  try {
-    const now = Date.now();
-    if (insightsCache && now - insightsCachedAt < 30 * 60 * 1000) {
-      return res.json(insightsCache);
-    }
-    const { articles } = getNews('all', 1, 30);
-    const insights = await generateInsights(articles);
-    insightsCache = insights;
-    insightsCachedAt = now;
-    res.json(insights);
-  } catch (err) {
-    console.error('[AI] Insights error:', err.message);
-    // Return fallback so frontend doesn't break
-    res.json({
-      trending: ['India News', 'Economy Update', 'Weather Alert', 'Political Developments', 'Sports'],
-      sentiment: { positive: 40, negative: 30, neutral: 30 },
-      factCheck: [],
-      predicted: [],
-    });
+// GET /api/ai/dashboard
+router.get('/dashboard', async (req, res) => {
+  const apiKey = req.headers['x-gemini-key'];
+  const now = Date.now();
+
+  // 1. Return Communal Cache if fresh AND has real data
+  if (isCacheValid()) {
+    return res.json(dashboardCache);
   }
-});
 
-// GET /api/ai/incidents — AI-extracted live incidents from news headlines
-router.get('/incidents', async (req, res) => {
-  try {
-    const now = Date.now();
-    if (incidentsCache && now - incidentsCachedAt < 15 * 60 * 1000) {
-      return res.json(incidentsCache);
+  // 2. Await active generation lock if another user triggered it
+  if (dashboardPromise) {
+    try {
+      const data = await dashboardPromise;
+      return res.json(data);
+    } catch(err) {
+      if (!apiKey) return res.status(401).json({ error: 'Cache population failed and no API key provided' });
+      // If it failed and we have a key, we'll try generating it ourselves below
     }
-    const { articles } = getNews('national', 1, 40);
-    const incidents = await generateIncidents(articles);
-    incidentsCache = { incidents };
-    incidentsCachedAt = now;
-    res.json({ incidents });
-  } catch (err) {
-    console.error('[AI] Incidents error:', err.message);
-    res.json({ incidents: [] }); // frontend will use static fallback
   }
-});
 
-// POST /api/ai/translate
-router.post('/translate', async (req, res) => {
+  // 3. If cache is stale and no key is provided, reject
+  if (!apiKey) {
+    return res.status(401).json({ error: 'MISSING_API_KEY' });
+  }
+
+  // 4. Trigger Mega-Generation with Mutex Lock
+  dashboardPromise = (async () => {
+    // A. Gather Raw Events
+    let holidays = [];
+    try {
+      const { data } = await axios.get('https://date.nager.at/api/v3/NextPublicHolidays/IN', { timeout: 4000 });
+      holidays = data.slice(0, 3).map(h => ({ title: h.name, type: 'Festival', date: h.date, desc: h.localName, source: 'Public Holiday' }));
+    } catch(e) {}
+    
+    let newsEvents = [];
+    if (typeof extractEventsFromNews === 'function') {
+      try { newsEvents = extractEventsFromNews(); } catch(e){}
+    }
+    const rawEvents = [...holidays, ...newsEvents];
+
+    // B. Gather News Articles
+    let articles = [];
+    try {
+      const newsPkg = getNews('national', 1, 40);
+      articles = newsPkg.articles;
+    } catch(e){}
+
+    // C. Execute Mega-Prompt
+    const data = await generateDashboardData(articles, rawEvents, apiKey);
+
+    // D. Commit to Communal Cache
+    dashboardCache = data;
+    dashboardCachedAt = Date.now();
+    return data;
+  })();
+
   try {
-    const { text, targetLang } = req.body;
-    if (!text || !targetLang) return res.status(400).json({ error: 'text and targetLang required' });
-    const translated = await translateText(text, targetLang);
-    res.json({ translated });
+    const data = await dashboardPromise;
+    res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[AI] Mega-Endpoint Mutex Error:', err.message);
+    const retryMsg = err.message.includes('429') ? 'Rate Limited. Wait 60s.' : 'Generation failed.';
+    res.status(500).json({ error: retryMsg });
+  } finally {
+    // Release the lock
+    dashboardPromise = null;
   }
 });
 
@@ -83,16 +107,20 @@ router.post('/translate-batch', async (req, res) => {
 
 // POST /api/ai/chat (streaming)
 router.post('/chat', async (req, res) => {
+  const apiKey = req.headers['x-gemini-key'];
+  if (!apiKey) return res.status(401).json({ error: 'Missing Gemini Key in Settings.' });
+
   try {
     const { messages } = req.body;
-    if (!messages || !messages.length) return res.status(400).json({ error: 'messages required' });
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'Invalid messages format' });
+    }
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders();
 
-    const stream = await chatWithGemini(messages);
+    const stream = await chatWithGemini(messages, apiKey);
     for await (const chunk of stream) {
       const text = chunk.text();
       if (text) {
@@ -103,18 +131,44 @@ router.post('/chat', async (req, res) => {
     res.end();
   } catch (err) {
     console.error('[AI Chat Error]', err.message || err);
-    const msg = err.message?.includes('429')
-      ? 'API rate limited — please wait a moment and try again.'
-      : err.message?.includes('API_KEY')
-        ? 'Invalid or missing OPENROUTER_API_KEY in backend/.env'
-        : (err.message || 'AI service error');
-    // If headers already sent (streaming), send as SSE
+    let msg = 'AI service error';
+    if (err.message?.includes('429')) msg = 'API rate limited — please wait a moment and try again.';
+    if (err.message?.includes('API_KEY')) msg = 'Invalid Gemini API Key.';
+
     if (res.headersSent) {
       res.write(`data: ${JSON.stringify({ error: msg })}\n\n`);
       res.end();
     } else {
       res.status(500).json({ error: msg });
     }
+  }
+});
+
+// POST /api/ai/translate
+router.post('/translate', async (req, res) => {
+  const apiKey = req.headers['x-gemini-key'];
+  if (!apiKey) return res.status(401).json({ error: 'Missing API Key.' });
+
+  try {
+    const { text, targetLang } = req.body;
+    const translated = await translateText(text, targetLang, apiKey);
+    res.json({ text: translated });
+  } catch (err) {
+    res.status(500).json({ error: 'Translation failed' });
+  }
+});
+
+// POST /api/ai/weather-summary
+router.post('/weather-summary', async (req, res) => {
+  const apiKey = req.headers['x-gemini-key'];
+  if (!apiKey) return res.status(401).json({ error: 'Missing API Key.' });
+
+  try {
+    const { city, weatherData } = req.body;
+    const summary = await generateWeatherSummary(city, weatherData, apiKey);
+    res.json({ summary });
+  } catch (err) {
+    res.status(500).json({ error: 'Weather AI failed' });
   }
 });
 

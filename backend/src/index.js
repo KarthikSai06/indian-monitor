@@ -7,6 +7,7 @@ const newsRoutes = require('./routes/news');
 const aiRoutes = require('./routes/ai');
 const weatherRoutes = require('./routes/weather');
 const marketsRoutes = require('./routes/markets');
+const cricketRoutes = require('./routes/cricket');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -21,6 +22,7 @@ app.use('/api/news', newsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/markets', marketsRoutes);
+app.use('/api/cricket', cricketRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
