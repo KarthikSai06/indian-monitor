@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MapContainer, TileLayer, CircleMarker, Marker, Popup, GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
@@ -81,134 +81,9 @@ function useIsMobile(bp = 1024) {
   return is;
 }
 
-// ─── Quick Prompts ─────────────────────────────────────────────────────────
-const QUICK_PROMPTS = [
-  { label: '🗞 Top news', q: 'What are the top news stories in India today?' },
-  { label: '📈 Markets', q: 'How are Indian markets performing today?' },
-  { label: '⛈ Weather', q: 'Weather summary for major Indian cities?' },
-  { label: '🏛 Politics', q: 'Latest political updates from India?' },
-];
 
-// ─── AI Widget ─────────────────────────────────────────────────────────────
-function AIWidget({ insights }) {
-  const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'नमस्ते! I\'m Bharat AI — ask me anything about India\'s latest news, markets, or weather.' }
-  ]);
-  const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const endRef = useRef(null);
 
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
-  const send = async (text) => {
-    const msg = (text || input).trim();
-    if (!msg || sending) return;
-    setInput('');
-    setMessages(p => [...p, { role: 'user', content: msg }]);
-    setSending(true);
-    setMessages(p => [...p, { role: 'assistant', content: '', streaming: true }]);
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-      const chatHistory = [...messages, { role: 'user', content: msg }]
-        .filter(m => m.role === 'user' || messages.indexOf(m) > 0);
-      const apiKey = localStorage.getItem('gemini_key') || '';
-      const res = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Gemini-Key': apiKey },
-        body: JSON.stringify({ messages: chatHistory }),
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-      if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
-      const reader = res.body.getReader();
-      const dec = new TextDecoder();
-      let acc = '';
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        for (const line of dec.decode(value).split('\n').filter(l => l.startsWith('data: '))) {
-          if (line.slice(6) === '[DONE]') break;
-          try {
-            const parsed = JSON.parse(line.slice(6));
-            if (parsed.error) { acc += `\n⚠️ ${parsed.error}`; break; }
-            if (parsed.token) {
-              acc += parsed.token;
-              setMessages(p => { const n = [...p]; n[n.length - 1] = { role: 'assistant', content: acc, streaming: true }; return n; });
-            }
-          } catch {}
-        }
-      }
-      if (!acc) acc = '⚠️ No response received. The AI may be rate-limited — please try again.';
-      setMessages(p => { const n = [...p]; n[n.length - 1] = { ...n[n.length - 1], content: acc, streaming: false }; return n; });
-    } catch (err) {
-      const errorMsg = err.name === 'AbortError'
-        ? '⏱️ Request timed out — AI may be busy. Please try again.'
-        : `⚠️ AI unavailable — ${err.message || 'check backend/.env'}`;
-      setMessages(p => { const n = [...p]; n[n.length - 1] = { role: 'assistant', content: errorMsg }; return n; });
-    }
-    setSending(false);
-  };
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(255,102,0,0.12)', background: 'rgba(8,8,18,0.98)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)', height: 480, maxHeight: '70vh' }}>
-      {/* Header */}
-      <div style={{ padding: '10px 14px', background: 'linear-gradient(135deg,rgba(255,102,0,0.12),rgba(255,102,0,0.03))', borderBottom: '1px solid rgba(255,102,0,0.1)', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-        <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#FF6600,#cc4400)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, boxShadow: '0 4px 14px rgba(255,102,0,0.4)' }}>🤖</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 13, color: '#FF6600' }}>Bharat AI</div>
-          <div style={{ fontFamily: 'var(--font-ui)', fontSize: 8, color: '#565680' }}>Powered by Gemini</div>
-        </div>
-        <motion.div animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
-          style={{ display: 'flex', alignItems: 'center', gap: 3, fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 7, letterSpacing: '0.1em', color: '#22c55e', padding: '2px 7px', borderRadius: 100, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)' }}>
-          <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#22c55e' }} />
-          ONLINE
-        </motion.div>
-      </div>
-      {/* Messages */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '10px', display: 'flex', flexDirection: 'column', gap: 7 }}>
-        {messages.map((m, i) => (
-          <motion.div key={i} initial={{ opacity: 0, y: 5, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
-            style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', gap: 5 }}>
-            {m.role === 'assistant' && (
-              <div style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, alignSelf: 'flex-end', background: 'linear-gradient(135deg,#FF6600,#cc4400)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>🤖</div>
-            )}
-            <div style={{ maxWidth: '80%', padding: '7px 11px', lineHeight: 1.5, fontFamily: 'var(--font-body)', fontSize: 11, borderRadius: m.role === 'user' ? '12px 12px 3px 12px' : '12px 12px 12px 3px', ...(m.role === 'user' ? { background: 'linear-gradient(135deg,#FF6600,#cc4400)', color: '#fff', boxShadow: '0 3px 10px rgba(255,102,0,0.25)' } : { background: 'rgba(255,255,255,0.04)', color: '#d0d0e8', border: '1px solid rgba(255,102,0,0.08)' }) }}>
-              {m.streaming && m.content === '' ? (
-                <div style={{ display: 'flex', gap: 3, padding: '2px 4px' }}>
-                  {[0,1,2].map(j => (<motion.div key={j} animate={{ y: [0,-4,0] }} transition={{ duration: 0.5, repeat: Infinity, delay: j * 0.12 }} style={{ width: 5, height: 5, borderRadius: '50%', background: '#FF6600' }} />))}
-                </div>
-              ) : (
-                <>{m.content}{m.streaming && <motion.span animate={{ opacity: [1,0,1] }} transition={{ duration: 0.7, repeat: Infinity }}>▌</motion.span>}</>
-              )}
-            </div>
-          </motion.div>
-        ))}
-        <div ref={endRef} />
-      </div>
-      {/* Quick prompts */}
-      <div style={{ padding: '5px 10px', borderTop: '1px solid rgba(255,102,0,0.06)', display: 'flex', gap: 4, flexWrap: 'wrap', flexShrink: 0 }}>
-        {QUICK_PROMPTS.map(p => (
-          <motion.button key={p.label} onClick={() => send(p.q)} whileHover={{ scale: 1.05, borderColor: '#FF6600' }}
-            style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 9, padding: '3px 8px', borderRadius: 100, cursor: 'pointer', background: 'rgba(255,102,0,0.04)', border: '1px solid rgba(255,102,0,0.1)', color: '#9090b0' }}>
-            {p.label}
-          </motion.button>
-        ))}
-      </div>
-      {/* Input */}
-      <div style={{ padding: '7px 9px', display: 'flex', gap: 7, alignItems: 'center', borderTop: '1px solid rgba(255,102,0,0.08)', background: 'rgba(0,0,0,0.3)', flexShrink: 0 }}>
-        <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
-          placeholder="Ask about India…"
-          style={{ flex: 1, padding: '8px 12px', borderRadius: 10, fontSize: 11, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,102,0,0.12)', color: '#f0f0f8', outline: 'none', fontFamily: 'var(--font-body)' }} />
-        <motion.button onClick={() => send()} disabled={!input.trim() || sending}
-          whileHover={input.trim() ? { scale: 1.1 } : {}} whileTap={input.trim() ? { scale: 0.9 } : {}}
-          style={{ width: 34, height: 34, borderRadius: 8, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() ? 'pointer' : 'default', flexShrink: 0, background: input.trim() ? 'linear-gradient(135deg,#FF6600,#cc4400)' : 'rgba(255,255,255,0.04)', fontSize: 14 }}>
-          {sending ? (<motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} style={{ width: 12, height: 12, borderRadius: '50%', border: '2px solid white', borderTopColor: 'transparent' }} />) : '➤'}
-        </motion.button>
-      </div>
-    </div>
-  );
-}
 
 // ─── Static map overlay data ───────────────────────────────────────────────
 const MONUMENTS = [
@@ -462,32 +337,35 @@ export default function Home() {
             </div>
           </div>
 
-          {/* AI Widget */}
-          <div style={{ position: isMobile ? 'relative' : 'sticky', top: isMobile ? 'auto' : 130, height: 'fit-content' }}>
-            <AIWidget insights={dashboard?.insights} />
+          {/* Incident Alert Cards */}
+          <div style={{
+            position: isMobile ? 'relative' : 'sticky', top: isMobile ? 'auto' : 130,
+            height: 'fit-content', maxHeight: isMobile ? 'none' : 520,
+            overflowY: 'auto',
+            display: 'flex', flexDirection: 'column', gap: 10,
+            paddingRight: 4,
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgba(255,102,0,0.3) transparent',
+          }}>
+            {INCIDENTS.map((inc, i) => (
+              <motion.div key={inc.id}
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                className={`alert-card alert-card-${inc.type}`}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <div className={`alert-icon-pill alert-icon-pill-${inc.type}`}>{TYPE_ICON[inc.type]}</div>
+                  <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: TYPE[inc.type] }}>
+                    {inc.type === 'alert' ? t('common.alert','ALERT') : inc.type === 'warn' ? t('common.warning','WARNING') : t('common.safe','SAFE')}
+                  </span>
+                </div>
+                <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', marginBottom: 4 }}>{inc.name}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{inc.desc}</div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* ── Section 2: Incident Alert Cards ── */}
-      <div className="page" style={{ paddingTop: 8, paddingBottom: 8 }}>
-        <div className="grid-responsive-4">
-          {INCIDENTS.slice(0, 4).map((inc, i) => (
-            <motion.div key={inc.id}
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-              className={`alert-card alert-card-${inc.type}`}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <div className={`alert-icon-pill alert-icon-pill-${inc.type}`}>{TYPE_ICON[inc.type]}</div>
-                <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: TYPE[inc.type] }}>
-                  {inc.type === 'alert' ? t('common.alert','ALERT') : inc.type === 'warn' ? t('common.warning','WARNING') : t('common.safe','SAFE')}
-                </span>
-              </div>
-              <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', marginBottom: 4 }}>{inc.name}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{inc.desc}</div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
+
 
       {/* ── Section 3: Live Pulse — Trending Topics | Hashtags | Cricket ── */}
       <div className="page" style={{ paddingTop: 0, paddingBottom: 20 }}>
