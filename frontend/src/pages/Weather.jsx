@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { AreaChart, Area, ResponsiveContainer, Tooltip as RTooltip } from 'recharts';
 import { fetchWeather } from '../lib/api';
+import useStore from '../store/useStore';
 
 const pv = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0 } };
 
@@ -65,7 +66,7 @@ function StateDetailCard({ s, onBack }) {
         borderRadius: 20, overflow: 'hidden',
         border: `1px solid ${color}44`,
         boxShadow: `0 8px 40px ${color}22`,
-        background: 'rgba(10,11,18,0.95)',
+        background: 'var(--bg-card)',
       }}
     >
       {/* Gradient Header */}
@@ -90,7 +91,7 @@ function StateDetailCard({ s, onBack }) {
         </motion.div>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-            <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 800, color: '#f0f0f8' }}>{s.state}</h3>
+            <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 800, color: 'var(--text-primary)' }}>{s.state}</h3>
             <span style={{
               fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 10,
               padding: '3px 10px', borderRadius: 100,
@@ -102,13 +103,13 @@ function StateDetailCard({ s, onBack }) {
             {s.region} India · Today's Weather Report
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 52, fontWeight: 800, color: '#f0f0f8', lineHeight: 1 }}>{s.temp}°</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 52, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1, textShadow: '0 4px 12px var(--shadow-dark)' }}>{s.temp}°</span>
             <span style={{ fontSize: 20, color: '#94a3b8', fontFamily: 'var(--font-ui)' }}>C</span>
           </div>
         </div>
         {/* Back button */}
         <button onClick={onBack} style={{
-          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+          background: 'var(--bg-card-solid)', border: '1px solid var(--glass-border)',
           color: '#94a3b8', padding: '8px 16px', borderRadius: 100, cursor: 'pointer',
           fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 11, display: 'flex',
           alignItems: 'center', gap: 6, flexShrink: 0, transition: 'all 0.2s',
@@ -130,10 +131,10 @@ function StateDetailCard({ s, onBack }) {
           { icon: '⚡', label: 'Alert Level', val: ['Cyclone Alert','Thunderstorm','Heavy Rain','Heatwave','Snowfall'].includes(s.condition) ? 'HIGH' : 'NORMAL' },
         ].map(stat => (
           <div key={stat.label} style={{
-            padding: '16px 20px', background: 'rgba(10,11,18,0.7)', textAlign: 'center',
+            padding: '16px 20px', background: 'var(--bg-card)', textAlign: 'center',
           }}>
             <div style={{ fontSize: 20, marginBottom: 6 }}>{stat.icon}</div>
-            <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 16, color: stat.label === 'Alert Level' && stat.val === 'HIGH' ? '#ef4444' : '#f0f0f8' }}>{stat.val}</div>
+            <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 16, color: stat.label === 'Alert Level' && stat.val === 'HIGH' ? '#ef4444' : 'var(--text-primary)' }}>{stat.val}</div>
             <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: '#475569', marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{stat.label}</div>
           </div>
         ))}
@@ -210,10 +211,10 @@ function StateWeatherNews({ isMobile }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
         <div style={{ width: 4, height: 28, background: 'linear-gradient(180deg, #38bdf8, #0ea5e9)', borderRadius: 2 }} />
         <div>
-          <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: '#f0f0f8' }}>
+          <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>
             🗺️ India State Weather Monitor
           </h2>
-          <div style={{ fontSize: 12, color: '#565680', fontFamily: 'var(--font-ui)', marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', marginTop: 2 }}>
             Select any state to view today's full weather report
           </div>
         </div>
@@ -230,8 +231,8 @@ function StateWeatherNews({ isMobile }) {
       {/* ── State Selector: scrollable pill list ── */}
       <div style={{
         padding: '12px 16px', marginBottom: 20,
-        background: 'rgba(6,6,15,0.8)', borderRadius: 14,
-        border: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--bg-card)', borderRadius: 14,
+        border: '1px solid var(--glass-border)',
       }}>
         {/* Top row: Search + Region quick-filter */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 12 }}>
@@ -243,8 +244,8 @@ function StateWeatherNews({ isMobile }) {
               value={searchText}
               onChange={e => { setSearchText(e.target.value); setSelectedState(null); }}
               style={{
-                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(56,189,248,0.25)',
-                color: '#f0f0f8', padding: '7px 14px 7px 32px', borderRadius: 100,
+                background: 'var(--bg-card-solid)', border: '1px solid var(--border)',
+                color: 'var(--text-primary)', padding: '7px 14px 7px 32px', borderRadius: 100,
                 fontFamily: 'var(--font-ui)', fontSize: 12, width: isMobile ? 150 : 200, outline: 'none',
               }}
             />
@@ -317,8 +318,8 @@ function StateWeatherNews({ isMobile }) {
                   whileHover={{ y: -3, borderColor: color + '55', boxShadow: `0 6px 20px ${color}18` }}
                   style={{
                     padding: '14px 16px', borderRadius: 14, cursor: 'pointer',
-                    background: 'rgba(12,13,20,0.85)',
-                    border: '1px solid rgba(255,255,255,0.05)',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--glass-border)',
                     transition: 'all 0.2s',
                     display: 'flex', alignItems: 'center', gap: 14,
                   }}
@@ -331,7 +332,7 @@ function StateWeatherNews({ isMobile }) {
                     {COND_EMOJI[s.condition] || '🌡️'}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 13, color: '#f0f0f8' }}>{s.state}</div>
+                    <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 13, color: 'var(--text-primary)' }}>{s.state}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
                       <span style={{
                         fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 9,
@@ -348,7 +349,7 @@ function StateWeatherNews({ isMobile }) {
                     }}>{s.news}</div>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: '#f0f0f8' }}>{s.temp}°C</div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: 'var(--text-primary)' }}>{s.temp}°C</div>
                     <div style={{ fontSize: 9, color: '#334155', fontFamily: 'var(--font-ui)', marginTop: 4 }}>Tap for details →</div>
                   </div>
                 </motion.div>
@@ -398,8 +399,8 @@ function StatMini({ label, value, unit }) {
       background: 'rgba(255,102,0,0.04)', border: '1px solid rgba(255,102,0,0.08)',
       minWidth: 70,
     }}>
-      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 9, color: '#565680', marginBottom: 4, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{label}</div>
-      <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 16, color: '#f0f0f8' }}>
+      <div style={{ fontFamily: 'var(--font-ui)', fontSize: 9, color: 'var(--text-muted)', marginBottom: 4, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{label}</div>
+      <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>
         {value}<span style={{ fontSize: 11, color: '#9090b0' }}>{unit}</span>
       </div>
     </div>
@@ -450,6 +451,8 @@ export default function Weather() {
   const [searchQuery, setSearchQuery] = useState('');
   const [cityDataMap, setCityDataMap] = useState({});
   const isMobile = useIsMobile();
+  const { theme } = useStore();
+  const isDark = theme === 'dark';
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -479,7 +482,7 @@ export default function Weather() {
         overflowX: 'auto', overflowY: 'hidden',
         WebkitOverflowScrolling: 'touch',
         scrollbarWidth: 'none',
-        background: 'rgba(6,6,15,0.97)', borderBottom: '1px solid rgba(255,102,0,0.08)',
+        background: 'var(--bg-card)', borderBottom: '1px solid rgba(255,102,0,0.08)',
         position: 'sticky', top: 106, zIndex: 20,
       }}>
         <style>{`.weather-strip::-webkit-scrollbar { display: none; }`}</style>
@@ -493,7 +496,7 @@ export default function Weather() {
               fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 11,
               padding: '5px 12px', borderRadius: 100, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
               background: city === c.key ? '#FF6600' : 'var(--bg-card-solid)',
-              color: city === c.key ? 'white' : '#9090b0',
+              color: city === c.key ? 'white' : 'var(--text-secondary)',
               border: `1px solid ${city === c.key ? '#FF6600' : 'rgba(255,102,0,0.1)'}`,
               boxShadow: city === c.key ? '0 4px 14px rgba(255,102,0,0.3)' : 'none',
               transition: 'all 0.15s',
@@ -509,8 +512,8 @@ export default function Weather() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
-              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,102,0,0.2)',
-              color: '#f0f0f8', padding: '6px 14px 6px 32px', borderRadius: 100,
+              background: 'var(--bg-card-solid)', border: '1px solid rgba(255,102,0,0.2)',
+              color: 'var(--text-primary)', padding: '6px 14px 6px 32px', borderRadius: 100,
               fontFamily: 'var(--font-ui)', fontSize: 13, width: isMobile ? 140 : 180,
               outline: 'none', transition: 'all 0.2s'
             }}
@@ -557,9 +560,9 @@ export default function Weather() {
                       display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
                       background: (() => {
                         const code = data.current.code || 0;
-                        if ([0, 1].includes(code)) return 'linear-gradient(160deg, rgba(234, 88, 12, 0.25), rgba(15, 10, 10, 0.95))'; // Sunny
-                        if ([2, 3, 45, 48].includes(code)) return 'linear-gradient(160deg, rgba(71, 85, 105, 0.3), rgba(12, 12, 26, 0.95))'; // Cloudy/Fog
-                        return 'linear-gradient(160deg, rgba(14, 116, 144, 0.35), rgba(8, 15, 30, 0.95))'; // Rain/Others
+                        if ([0, 1].includes(code)) return isDark ? 'linear-gradient(160deg, rgba(234, 88, 12, 0.25), rgba(15, 10, 10, 0.95))' : 'linear-gradient(160deg, rgba(234, 88, 12, 0.15), rgba(255,248,240,0.95))'; // Sunny
+                        if ([2, 3, 45, 48].includes(code)) return isDark ? 'linear-gradient(160deg, rgba(71, 85, 105, 0.3), rgba(12, 12, 26, 0.95))' : 'linear-gradient(160deg, rgba(71, 85, 105, 0.1), rgba(245,243,240,0.95))'; // Cloudy/Fog
+                        return isDark ? 'linear-gradient(160deg, rgba(14, 116, 144, 0.35), rgba(8, 15, 30, 0.95))' : 'linear-gradient(160deg, rgba(14, 116, 144, 0.12), rgba(240,248,250,0.95))'; // Rain/Others
                       })(),
                       boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05)',
                     }}>
@@ -569,7 +572,7 @@ export default function Weather() {
                         style={{ fontSize: isMobile ? 64 : 88, lineHeight: 1, marginBottom: 8, filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.3))' }}>
                         {data.current.emoji}
                       </motion.div>
-                      <div style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? 48 : 64, fontWeight: 700, color: '#f0f0f8', lineHeight: 1, textShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? 48 : 64, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1, textShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
                         {data.current.temp}°C
                       </div>
                       <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 20, color: '#FF6600', marginTop: 10, letterSpacing: '0.02em' }}>

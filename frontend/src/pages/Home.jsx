@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, CircleMarker, Marker, Popup, GeoJSON } from 'r
 import L from 'leaflet';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import useStore from '../store/useStore';
 
 // ─── Custom DivIcon factories ──────────────────────────────────────────────
 const nuclearIcon = L.divIcon({
@@ -48,14 +49,14 @@ const pv = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 
 
 // ─── Static fallback incidents ─────────────────────────────────────────────
 const STATIC_INCIDENTS = [
-  { id: 1, name: 'Delhi — Protest', pos: [28.61, 77.21], type: 'alert', desc: 'Large-scale protest at India Gate. Traffic disrupted on key routes.' },
-  { id: 2, name: 'Mumbai — Flood Advisory', pos: [19.07, 72.87], type: 'warn', desc: 'Heavy rainfall expected. Low-lying area flood advisory issued.' },
-  { id: 3, name: 'Bengaluru — Tech Summit', pos: [12.97, 77.59], type: 'safe', desc: 'International Tech Summit underway at BIEC, Bengaluru.' },
+  { id: 1, name: 'Delhi — Protest',         pos: [28.61, 77.21], type: 'alert', desc: 'Large-scale protest at India Gate. Traffic disrupted on key routes.' },
+  { id: 2, name: 'Mumbai — Flood Advisory', pos: [19.07, 72.87], type: 'warn',  desc: 'Heavy rainfall expected. Low-lying area flood advisory issued.' },
+  { id: 3, name: 'Bengaluru — Tech Summit', pos: [12.97, 77.59], type: 'safe',  desc: 'International Tech Summit underway at BIEC, Bengaluru.' },
   { id: 4, name: 'Chennai — Cyclone Watch', pos: [13.08, 80.27], type: 'alert', desc: 'IMD issues cyclone watch. Coastal areas on high alert.' },
-  { id: 5, name: 'Jaipur — Festival', pos: [26.92, 75.78], type: 'safe', desc: 'Jaipur Literature Festival draws record 1.2 lakh attendees.' },
-  { id: 6, name: 'Kolkata — Strike', pos: [22.57, 88.36], type: 'warn', desc: 'Trade union strike affects city transport.' },
-  { id: 7, name: 'Patna — Flood', pos: [25.60, 85.11], type: 'alert', desc: 'River Ganga overflows; rescue teams deployed in 12 districts.' },
-  { id: 8, name: 'Hyderabad — Event', pos: [17.38, 78.48], type: 'safe', desc: 'CII Partnership Summit inaugurated by CM.' },
+  { id: 5, name: 'Jaipur — Festival',       pos: [26.92, 75.78], type: 'safe',  desc: 'Jaipur Literature Festival draws record 1.2 lakh attendees.' },
+  { id: 6, name: 'Kolkata — Strike',        pos: [22.57, 88.36], type: 'warn',  desc: 'Trade union strike affects city transport.' },
+  { id: 7, name: 'Patna — Flood',           pos: [25.60, 85.11], type: 'alert', desc: 'River Ganga overflows; rescue teams deployed in 12 districts.' },
+  { id: 8, name: 'Hyderabad — Event',       pos: [17.38, 78.48], type: 'safe',  desc: 'CII Partnership Summit inaugurated by CM.' },
 ];
 const TYPE = { alert: '#ef4444', warn: '#eab308', safe: '#22c55e' };
 const TYPE_ICON = { alert: '🚨', warn: '⚠️', safe: '✅' };
@@ -66,7 +67,7 @@ const INDIA_GEO = {
   properties: { name: 'India' },
   geometry: {
     type: 'Polygon',
-    coordinates: [[[68.17, 23.69], [68.86, 24.27], [70.46, 25.72], [69.62, 27.47], [70.26, 28.02], [71.10, 27.83], [72.18, 28.42], [72.84, 28.96], [73.45, 29.98], [74.42, 30.98], [75.07, 32.24], [74.62, 33.12], [74.15, 33.49], [73.75, 34.32], [74.24, 34.75], [75.76, 34.50], [76.87, 34.66], [77.84, 35.49], [78.91, 34.32], [78.81, 33.51], [79.21, 32.56], [79.18, 31.38], [80.09, 30.57], [80.48, 29.73], [81.11, 30.18], [81.53, 30.43], [82.33, 30.13], [83.34, 29.46], [84.23, 28.84], [85.01, 28.64], [85.82, 28.20], [86.95, 27.97], [88.12, 27.88], [88.73, 28.09], [88.81, 27.30], [88.14, 25.81], [89.83, 25.97], [89.70, 26.72], [92.10, 26.86], [92.03, 25.92], [91.22, 25.50], [90.59, 25.17], [92.49, 24.23], [94.16, 23.85], [95.12, 22.77], [93.17, 22.28], [93.06, 21.32], [92.37, 20.67], [92.08, 21.19], [92.24, 20.47], [90.95, 22.09], [89.18, 21.61], [88.93, 22.25], [88.27, 21.49], [87.03, 21.55], [86.83, 21.14], [85.72, 21.07], [84.20, 20.51], [83.94, 18.30], [81.50, 16.00], [80.27, 15.80], [80.05, 13.84], [80.19, 12.75], [79.86, 11.98], [79.45, 11.11], [79.17, 10.38], [78.42, 9.12], [77.94, 8.25], [77.54, 8.08], [76.65, 8.90], [76.25, 9.83], [75.92, 10.88], [75.72, 11.36], [75.40, 11.78], [74.86, 12.74], [74.62, 13.99], [73.88, 15.38], [73.53, 15.99], [72.82, 17.26], [72.68, 18.05], [72.79, 19.21], [72.58, 19.93], [72.26, 20.74], [71.66, 21.12], [70.61, 20.89], [69.50, 22.85], [68.97, 22.69], [68.17, 23.69]]],
+    coordinates: [[[68.17,23.69],[68.86,24.27],[70.46,25.72],[69.62,27.47],[70.26,28.02],[71.10,27.83],[72.18,28.42],[72.84,28.96],[73.45,29.98],[74.42,30.98],[75.07,32.24],[74.62,33.12],[74.15,33.49],[73.75,34.32],[74.24,34.75],[75.76,34.50],[76.87,34.66],[77.84,35.49],[78.91,34.32],[78.81,33.51],[79.21,32.56],[79.18,31.38],[80.09,30.57],[80.48,29.73],[81.11,30.18],[81.53,30.43],[82.33,30.13],[83.34,29.46],[84.23,28.84],[85.01,28.64],[85.82,28.20],[86.95,27.97],[88.12,27.88],[88.73,28.09],[88.81,27.30],[88.14,25.81],[89.83,25.97],[89.70,26.72],[92.10,26.86],[92.03,25.92],[91.22,25.50],[90.59,25.17],[92.49,24.23],[94.16,23.85],[95.12,22.77],[93.17,22.28],[93.06,21.32],[92.37,20.67],[92.08,21.19],[92.24,20.47],[90.95,22.09],[89.18,21.61],[88.93,22.25],[88.27,21.49],[87.03,21.55],[86.83,21.14],[85.72,21.07],[84.20,20.51],[83.94,18.30],[81.50,16.00],[80.27,15.80],[80.05,13.84],[80.19,12.75],[79.86,11.98],[79.45,11.11],[79.17,10.38],[78.42,9.12],[77.94,8.25],[77.54,8.08],[76.65,8.90],[76.25,9.83],[75.92,10.88],[75.72,11.36],[75.40,11.78],[74.86,12.74],[74.62,13.99],[73.88,15.38],[73.53,15.99],[72.82,17.26],[72.68,18.05],[72.79,19.21],[72.58,19.93],[72.26,20.74],[71.66,21.12],[70.61,20.89],[69.50,22.85],[68.97,22.69],[68.17,23.69]]],
   },
 };
 
@@ -87,95 +88,97 @@ function useIsMobile(bp = 1024) {
 
 // ─── Static map overlay data ───────────────────────────────────────────────
 const MONUMENTS = [
-  { id: 1, name: 'Taj Mahal', pos: [27.175, 78.042], desc: 'Iconic Mughal mausoleum in Agra.' },
-  { id: 2, name: 'Red Fort', pos: [28.656, 77.241], desc: 'Historic Mughal fort in Delhi.' },
-  { id: 3, name: 'Qutub Minar', pos: [28.524, 77.185], desc: 'UNESCO World Heritage minaret.' },
-  { id: 4, name: 'Gateway of India', pos: [18.922, 72.835], desc: 'Iconic arch monument in Mumbai.' },
-  { id: 5, name: 'Charminar', pos: [17.361, 78.474], desc: 'Historic mosque and monument in Hyderabad.' },
-  { id: 6, name: 'Hawa Mahal', pos: [26.923, 75.826], desc: 'Palace of Winds in Jaipur, Rajasthan.' },
-  { id: 7, name: 'Victoria Memorial', pos: [22.544, 88.342], desc: 'Large marble building in Kolkata.' },
-  { id: 8, name: 'Mysore Palace', pos: [12.305, 76.655], desc: 'Historical royal residence in Karnataka.' },
-  { id: 9, name: 'Meenakshi Temple', pos: [9.919, 78.119], desc: 'Historic Hindu temple in Madurai.' },
-  { id: 10, name: 'Golden Temple', pos: [31.620, 74.876], desc: 'Holiest Gurdwara of Sikhism in Amritsar.' },
-  { id: 11, name: 'Sun Temple', pos: [19.887, 86.094], desc: '13th-century temple in Konark, Odisha.' },
-  { id: 12, name: 'Sanchi Stupa', pos: [23.479, 77.739], desc: 'Buddhist complex in Madhya Pradesh.' },
-  { id: 13, name: 'Hampi', pos: [15.335, 76.460], desc: 'Ancient village ruins in Karnataka.' }
+  { id: 1, name: 'Taj Mahal',          pos: [27.175, 78.042], desc: 'Iconic Mughal mausoleum in Agra.' },
+  { id: 2, name: 'Red Fort',           pos: [28.656, 77.241], desc: 'Historic Mughal fort in Delhi.' },
+  { id: 3, name: 'Qutub Minar',        pos: [28.524, 77.185], desc: 'UNESCO World Heritage minaret.' },
+  { id: 4, name: 'Gateway of India',   pos: [18.922, 72.835], desc: 'Iconic arch monument in Mumbai.' },
+  { id: 5, name: 'Charminar',          pos: [17.361, 78.474], desc: 'Historic mosque and monument in Hyderabad.' },
+  { id: 6, name: 'Hawa Mahal',         pos: [26.923, 75.826], desc: 'Palace of Winds in Jaipur, Rajasthan.' },
+  { id: 7, name: 'Victoria Memorial',  pos: [22.544, 88.342], desc: 'Large marble building in Kolkata.' },
+  { id: 8, name: 'Mysore Palace',      pos: [12.305, 76.655], desc: 'Historical royal residence in Karnataka.' },
+  { id: 9, name: 'Meenakshi Temple',   pos: [9.919, 78.119],  desc: 'Historic Hindu temple in Madurai.' },
+  { id: 10, name: 'Golden Temple',     pos: [31.620, 74.876], desc: 'Holiest Gurdwara of Sikhism in Amritsar.' },
+  { id: 11, name: 'Sun Temple',        pos: [19.887, 86.094], desc: '13th-century temple in Konark, Odisha.' },
+  { id: 12, name: 'Sanchi Stupa',      pos: [23.479, 77.739], desc: 'Buddhist complex in Madhya Pradesh.' },
+  { id: 13, name: 'Hampi',             pos: [15.335, 76.460], desc: 'Ancient village ruins in Karnataka.' }
 ];
 const MILITARY_BASES = [
-  { id: 1, name: 'Ambala Air Base', pos: [30.368, 76.816], desc: 'IAF strike corps base, home to Rafale jets.' },
-  { id: 2, name: 'INS Karwar', pos: [14.80, 74.13], desc: "Indian Navy's largest western seaboard base." },
-  { id: 3, name: 'Fort William', pos: [22.556, 88.343], desc: 'Headquarters of Eastern Command, Army.' },
-  { id: 4, name: 'Jodhpur Air Base', pos: [26.251, 73.048], desc: 'Strategic IAF base in Rajasthan.' },
-  { id: 5, name: 'Eastern Naval Cmd', pos: [17.686, 83.218], desc: 'Naval headquarters in Visakhapatnam.' },
-  { id: 6, name: 'Southern Naval Cmd', pos: [9.963, 76.271], desc: 'Training command of Indian Navy in Kochi.' },
-  { id: 7, name: 'Hindon Air Station', pos: [28.707, 77.355], desc: 'Eighth largest airbase in the world, Ghaziabad.' },
+  { id: 1, name: 'Ambala Air Base',     pos: [30.368, 76.816], desc: 'IAF strike corps base, home to Rafale jets.' },
+  { id: 2, name: 'INS Karwar',          pos: [14.80,  74.13 ], desc: "Indian Navy's largest western seaboard base." },
+  { id: 3, name: 'Fort William',        pos: [22.556, 88.343], desc: 'Headquarters of Eastern Command, Army.' },
+  { id: 4, name: 'Jodhpur Air Base',    pos: [26.251, 73.048], desc: 'Strategic IAF base in Rajasthan.' },
+  { id: 5, name: 'Eastern Naval Cmd',   pos: [17.686, 83.218], desc: 'Naval headquarters in Visakhapatnam.' },
+  { id: 6, name: 'Southern Naval Cmd',  pos: [9.963,  76.271], desc: 'Training command of Indian Navy in Kochi.' },
+  { id: 7, name: 'Hindon Air Station',  pos: [28.707, 77.355], desc: 'Eighth largest airbase in the world, Ghaziabad.' },
   { id: 8, name: 'Southern Command HQ', pos: [18.501, 73.880], desc: 'Indian Army command in Pune.' },
-  { id: 9, name: 'Northern Command', pos: [32.926, 75.141], desc: 'Army command stationed in Udhampur (J&K).' },
-  { id: 10, name: 'Tezpur Air Base', pos: [26.631, 92.784], desc: 'Forward airbase in Assam.' }
+  { id: 9, name: 'Northern Command',    pos: [32.926, 75.141], desc: 'Army command stationed in Udhampur (J&K).' },
+  { id: 10, name: 'Tezpur Air Base',    pos: [26.631, 92.784], desc: 'Forward airbase in Assam.' }
 ];
 const NUCLEAR_SITES = [
-  { id: 1, name: 'Tarapur TAPS', pos: [19.833, 72.717], desc: "India's first nuclear power station." },
-  { id: 2, name: 'Kudankulam NPP', pos: [8.168, 77.706], desc: 'Russia-built reactor in Tamil Nadu.' },
-  { id: 3, name: 'Rawatbhata RAPS', pos: [24.867, 75.583], desc: 'NPCIL nuclear plant in Rajasthan.' },
-  { id: 4, name: 'Kaiga NPP', pos: [14.862, 74.449], desc: 'Nuclear power plant in Karnataka.' },
-  { id: 5, name: 'Kakrapar Aps', pos: [21.236, 73.349], desc: 'Atomic power station in Gujarat.' },
-  { id: 6, name: 'Kalpakkam Madras', pos: [12.557, 80.174], desc: 'Comprehensive nuclear facility in TN.' },
-  { id: 7, name: 'Narora Aps', pos: [28.156, 78.384], desc: 'Nuclear power station in Uttar Pradesh.' },
-  { id: 8, name: 'Gorakhpur NPP', pos: [29.431, 75.645], desc: 'Upcoming nuclear power plant in Haryana.' },
-  { id: 9, name: 'BARC Trombay', pos: [19.006, 72.915], desc: "India's premier nuclear research facility." }
+  { id: 1, name: 'Tarapur TAPS',        pos: [19.833, 72.717], desc: "India's first nuclear power station." },
+  { id: 2, name: 'Kudankulam NPP',      pos: [8.168,  77.706], desc: 'Russia-built reactor in Tamil Nadu.' },
+  { id: 3, name: 'Rawatbhata RAPS',     pos: [24.867, 75.583], desc: 'NPCIL nuclear plant in Rajasthan.' },
+  { id: 4, name: 'Kaiga NPP',           pos: [14.862, 74.449], desc: 'Nuclear power plant in Karnataka.' },
+  { id: 5, name: 'Kakrapar Aps',        pos: [21.236, 73.349], desc: 'Atomic power station in Gujarat.' },
+  { id: 6, name: 'Kalpakkam Madras',    pos: [12.557, 80.174], desc: 'Comprehensive nuclear facility in TN.' },
+  { id: 7, name: 'Narora Aps',          pos: [28.156, 78.384], desc: 'Nuclear power station in Uttar Pradesh.' },
+  { id: 8, name: 'Gorakhpur NPP',       pos: [29.431, 75.645], desc: 'Upcoming nuclear power plant in Haryana.' },
+  { id: 9, name: 'BARC Trombay',        pos: [19.006, 72.915], desc: "India's premier nuclear research facility." }
 ];
 const SPACE_RESEARCH = [
-  { id: 1, name: 'ISRO SDSC', pos: [13.720, 80.230], desc: 'Satish Dhawan Space Centre, Sriharikota.' },
-  { id: 2, name: 'ISRO VSSC', pos: [8.532, 76.864], desc: 'Vikram Sarabhai Space Centre, Kerala.' },
-  { id: 3, name: 'IDSN node', pos: [12.721, 77.382], desc: 'Indian Deep Space Network near Bengaluru.' },
-  { id: 4, name: 'ISRO SAC', pos: [23.018, 72.511], desc: 'Space Applications Centre, Ahmedabad.' }
+  { id: 1, name: 'ISRO SDSC',      pos: [13.720, 80.230], desc: 'Satish Dhawan Space Centre, Sriharikota.' },
+  { id: 2, name: 'ISRO VSSC',      pos: [8.532,  76.864], desc: 'Vikram Sarabhai Space Centre, Kerala.' },
+  { id: 3, name: 'IDSN node',      pos: [12.721, 77.382], desc: 'Indian Deep Space Network near Bengaluru.' },
+  { id: 4, name: 'ISRO SAC',       pos: [23.018, 72.511], desc: 'Space Applications Centre, Ahmedabad.' }
 ];
 const NATIONAL_PARKS = [
-  { id: 1, name: 'Kaziranga', pos: [26.577, 93.171], desc: 'Famed for the Great Indian One-Horned Rhinoceros.' },
-  { id: 2, name: 'Jim Corbett', pos: [29.530, 78.774], desc: 'Oldest national park in India, Uttarakhand.' },
-  { id: 3, name: 'Ranthambore', pos: [26.017, 76.502], desc: 'Major wildlife tourist attraction in Rajasthan.' },
-  { id: 4, name: 'Sundarbans', pos: [21.949, 88.880], desc: 'Mangrove area in the delta, tiger reserve.' },
-  { id: 5, name: 'Kanha', pos: [22.334, 80.611], desc: 'Vast tiger reserve in Madhya Pradesh.' }
+  { id: 1, name: 'Kaziranga',      pos: [26.577, 93.171], desc: 'Famed for the Great Indian One-Horned Rhinoceros.' },
+  { id: 2, name: 'Jim Corbett',    pos: [29.530, 78.774], desc: 'Oldest national park in India, Uttarakhand.' },
+  { id: 3, name: 'Ranthambore',    pos: [26.017, 76.502], desc: 'Major wildlife tourist attraction in Rajasthan.' },
+  { id: 4, name: 'Sundarbans',     pos: [21.949, 88.880], desc: 'Mangrove area in the delta, tiger reserve.' },
+  { id: 5, name: 'Kanha',          pos: [22.334, 80.611], desc: 'Vast tiger reserve in Madhya Pradesh.' }
 ];
 const MEGA_INFRA = [
-  { id: 1, name: 'Bhadla Solar', pos: [27.538, 71.916], desc: "World's largest solar park in Rajasthan." },
-  { id: 2, name: 'Chenab Bridge', pos: [33.150, 74.881], desc: "World's highest railway bridge in J&K." },
-  { id: 3, name: 'Tehri Dam', pos: [30.378, 78.480], desc: 'Tallest dam in India, Uttarakhand.' },
-  { id: 4, name: 'BWSL Mumbai', pos: [19.035, 72.816], desc: 'Cable-stayed bridge in Mumbai.' },
-  { id: 5, name: 'Atal Tunnel', pos: [32.361, 77.194], desc: 'Longest highway single-tube tunnel above 10,000 feet.' }
+  { id: 1, name: 'Bhadla Solar',   pos: [27.538, 71.916], desc: "World's largest solar park in Rajasthan." },
+  { id: 2, name: 'Chenab Bridge',  pos: [33.150, 74.881], desc: "World's highest railway bridge in J&K." },
+  { id: 3, name: 'Tehri Dam',      pos: [30.378, 78.480], desc: 'Tallest dam in India, Uttarakhand.' },
+  { id: 4, name: 'BWSL Mumbai',    pos: [19.035, 72.816], desc: 'Cable-stayed bridge in Mumbai.' },
+  { id: 5, name: 'Atal Tunnel',    pos: [32.361, 77.194], desc: 'Longest highway single-tube tunnel above 10,000 feet.' }
 ];
 const SEAPORTS = [
-  { id: 1, name: 'Nhava Sheva', pos: [18.949, 72.951], desc: 'Largest container port in India, Navi Mumbai.' },
-  { id: 2, name: 'Mundra Port', pos: [22.738, 69.704], desc: 'Largest private port in India, Gujarat.' },
-  { id: 3, name: 'Chennai Port', pos: [13.084, 80.297], desc: 'Second largest container port in India.' },
-  { id: 4, name: 'Visakhapatnam', pos: [17.697, 83.284], desc: 'Major port on the Eastern coast.' },
-  { id: 5, name: 'Kochi Port', pos: [9.963, 76.264], desc: 'Major port on the Arabian Sea/Indian Ocean.' }
+  { id: 1, name: 'Nhava Sheva',    pos: [18.949, 72.951], desc: 'Largest container port in India, Navi Mumbai.' },
+  { id: 2, name: 'Mundra Port',    pos: [22.738, 69.704], desc: 'Largest private port in India, Gujarat.' },
+  { id: 3, name: 'Chennai Port',   pos: [13.084, 80.297], desc: 'Second largest container port in India.' },
+  { id: 4, name: 'Visakhapatnam',  pos: [17.697, 83.284], desc: 'Major port on the Eastern coast.' },
+  { id: 5, name: 'Kochi Port',     pos: [9.963,  76.264], desc: 'Major port on the Arabian Sea/Indian Ocean.' }
 ];
 const TECH_HUBS = [
-  { id: 1, name: 'GIFT City', pos: [23.160, 72.684], desc: 'Smart city and financial hub in Gujarat.' },
-  { id: 2, name: 'Electronic City', pos: [12.845, 77.660], desc: 'Major IT hub in Bengaluru.' },
-  { id: 3, name: 'HITEC City', pos: [17.447, 78.376], desc: 'Technology, Engineering, and Health hub in Hyderabad.' },
-  { id: 4, name: 'Bandra Kurla', pos: [19.066, 72.865], desc: 'Commercial and financial center in Mumbai.' },
-  { id: 5, name: 'Cyber City', pos: [28.490, 77.088], desc: 'Major corporate park in Gurugram.' }
+  { id: 1, name: 'GIFT City',      pos: [23.160, 72.684], desc: 'Smart city and financial hub in Gujarat.' },
+  { id: 2, name: 'Electronic City',pos: [12.845, 77.660], desc: 'Major IT hub in Bengaluru.' },
+  { id: 3, name: 'HITEC City',     pos: [17.447, 78.376], desc: 'Technology, Engineering, and Health hub in Hyderabad.' },
+  { id: 4, name: 'Bandra Kurla',   pos: [19.066, 72.865], desc: 'Commercial and financial center in Mumbai.' },
+  { id: 5, name: 'Cyber City',     pos: [28.490, 77.088], desc: 'Major corporate park in Gurugram.' }
 ];
 const AIRPORTS = [
-  { id: 1, name: 'IGI Airport', pos: [28.556, 77.100], desc: 'Primary international airport of Delhi.' },
-  { id: 2, name: 'CSMIA Mumbai', pos: [19.089, 72.865], desc: 'Chhatrapati Shivaji Maharaj International Airport.' },
-  { id: 3, name: 'KIA Bengaluru', pos: [13.198, 77.706], desc: 'Kempegowda International Airport.' },
-  { id: 4, name: 'RGI Hyderabad', pos: [17.240, 78.429], desc: 'Rajiv Gandhi International Airport.' },
-  { id: 5, name: 'CCU Kolkata', pos: [22.652, 88.446], desc: 'Netaji Subhas Chandra Bose Airport.' }
+  { id: 1, name: 'IGI Airport',    pos: [28.556, 77.100], desc: 'Primary international airport of Delhi.' },
+  { id: 2, name: 'CSMIA Mumbai',   pos: [19.089, 72.865], desc: 'Chhatrapati Shivaji Maharaj International Airport.' },
+  { id: 3, name: 'KIA Bengaluru',  pos: [13.198, 77.706], desc: 'Kempegowda International Airport.' },
+  { id: 4, name: 'RGI Hyderabad',  pos: [17.240, 78.429], desc: 'Rajiv Gandhi International Airport.' },
+  { id: 5, name: 'CCU Kolkata',    pos: [22.652, 88.446], desc: 'Netaji Subhas Chandra Bose Airport.' }
 ];
 
 // ─── Main Home Page ────────────────────────────────────────────────────────
 export default function Home() {
   const [selected, setSelected] = useState(null);
-  const [layers, setLayers] = useState({
-    monuments: true, military: true, nuclear: true,
-    space: true, parks: true, infra: true,
-    ports: true, tech: true, airports: true
+  const [layers, setLayers] = useState({ 
+    monuments: true, military: true, nuclear: true, 
+    space: true, parks: true, infra: true, 
+    ports: true, tech: true, airports: true 
   });
   const isMobile = useIsMobile();
   const { t } = useTranslation();
+  const { theme } = useStore();
+  const isDark = theme === 'dark';
 
   const toggleLayer = (key) => setLayers(prev => ({ ...prev, [key]: !prev[key] }));
 
@@ -210,33 +213,33 @@ export default function Home() {
           {/* India Map */}
           <div className="card card-static" style={{ overflow: 'hidden' }}>
             <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255,102,0,0.08)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span className="section-header" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none', letterSpacing: '0.05em', color: '#f0f0f8' }}>🗺️ {t('sections.incidentMap', 'India Info Map')}</span>
+              <span className="section-header" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none', letterSpacing: '0.05em', color: 'var(--text-primary)' }}>🗺️ {t('sections.incidentMap', 'India Info Map')}</span>
               {isLive && (
                 <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
                   style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 8, letterSpacing: '0.1em', padding: '2px 8px', borderRadius: 100, background: 'rgba(255,102,0,0.12)', border: '1px solid rgba(255,102,0,0.25)', color: '#FF9933' }}>
                   🤖 AI-LIVE
                 </motion.span>
               )}
-              <span style={{ marginLeft: 'auto', fontSize: 10, fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
-                {INCIDENTS.filter(i => i.type === 'alert').length} {t('common.alerts', 'alerts')} · {INCIDENTS.filter(i => i.type === 'warn').length} {t('common.warnings', 'warnings')}
+              <span style={{ marginLeft: 'auto', fontSize: 12, fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
+                {INCIDENTS.filter(i => i.type === 'alert').length} {t('common.alerts','alerts')} · {INCIDENTS.filter(i => i.type === 'warn').length} {t('common.warnings','warnings')}
               </span>
             </div>
 
             {/* Layer Filters */}
-            <div style={{ display: 'flex', gap: 8, padding: '8px 16px', background: 'rgba(0,0,0,0.2)', flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+            <div style={{ display: 'flex', gap: 8, padding: '8px 16px', background: 'var(--bg-card-solid)', flexWrap: 'wrap', borderBottom: '1px solid var(--glass-border)' }}>
               {[
-                { key: 'monuments', label: '🏛 Monuments', color: '#f1c40f' },
-                { key: 'space', label: '🚀 Space & R&D', color: '#8b5cf6' },
-                { key: 'military', label: '⚔️ Military', color: '#e74c3c' },
-                { key: 'nuclear', label: '☢️ Nuclear Sites', color: '#00cec9' },
-                { key: 'parks', label: '🐅 National Parks', color: '#10b981' },
-                { key: 'infra', label: '⚡ Mega Infra', color: '#f97316' },
-                { key: 'ports', label: '🚢 Major Ports', color: '#3b82f6' },
-                { key: 'tech', label: '🏭 Tech Hubs', color: '#ec4899' },
-                { key: 'airports', label: '✈️ Airports', color: '#6366f1' },
+                { key: 'monuments', label: '🏛 Monuments',     color: '#f1c40f' },
+                { key: 'space',     label: '🚀 Space & R&D',   color: '#8b5cf6' },
+                { key: 'military',  label: '⚔️ Military',      color: '#e74c3c' },
+                { key: 'nuclear',   label: '☢️ Nuclear Sites', color: '#00cec9' },
+                { key: 'parks',     label: '🐅 National Parks',color: '#10b981' },
+                { key: 'infra',     label: '⚡ Mega Infra',    color: '#f97316' },
+                { key: 'ports',     label: '🚢 Major Ports',   color: '#3b82f6' },
+                { key: 'tech',      label: '🏭 Tech Hubs',     color: '#ec4899' },
+                { key: 'airports',  label: '✈️ Airports',      color: '#6366f1' },
               ].map(({ key, label, color }) => (
                 <motion.button key={key} onClick={() => toggleLayer(key)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                  style={{ padding: '4px 12px', borderRadius: 100, border: `1px solid ${layers[key] ? color : 'rgba(255,255,255,0.1)'}`, background: layers[key] ? `${color}22` : 'transparent', color: layers[key] ? color : '#9090b0', fontSize: 10, fontFamily: 'var(--font-ui)', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
+                  style={{ padding: '5px 14px', borderRadius: 100, border: `1px solid ${layers[key] ? color : 'rgba(255,255,255,0.1)'}`, background: layers[key] ? `${color}22` : 'transparent', color: layers[key] ? color : 'var(--text-secondary)', fontSize: 12, fontFamily: 'var(--font-ui)', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
                   {label}
                 </motion.button>
               ))}
@@ -247,7 +250,7 @@ export default function Home() {
               <MapContainer center={[22.0, 80.0]} zoom={5} style={{ height: '100%', width: '100%' }}
                 minZoom={4} maxZoom={10} zoomControl attributionControl={false}
                 whenReady={(m) => setTimeout(() => m.target.invalidateSize(), 100)}>
-                <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" subdomains="abcd" />
+                <TileLayer url={isDark ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'} subdomains="abcd" />
                 <GeoJSON data={INDIA_GEO} style={{ fillColor: '#38bdf8', fillOpacity: 0.06, color: '#38bdf8', weight: 1, opacity: 0.3, dashArray: '5 4' }} />
 
                 {INCIDENTS.map(inc => (
@@ -329,8 +332,8 @@ export default function Home() {
 
             {/* Legend */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '8px 16px', borderTop: '1px solid rgba(255,102,0,0.06)', flexWrap: 'wrap' }}>
-              {[['alert', t('common.alert', 'Alert')], ['warn', t('common.warning', 'Warning')], ['safe', t('common.safe', 'Safe')]].map(([k, l]) => (
-                <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontFamily: 'var(--font-ui)', fontWeight: 600, color: TYPE[k] }}>
+              {[['alert', t('common.alert','Alert')], ['warn', t('common.warning','Warning')], ['safe', t('common.safe','Safe')]].map(([k, l]) => (
+              <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, fontFamily: 'var(--font-ui)', fontWeight: 600, color: TYPE[k] }}>
                   <div style={{ width: 7, height: 7, borderRadius: '50%', background: TYPE[k], boxShadow: `0 0 6px ${TYPE[k]}` }} /> {l}
                 </div>
               ))}
@@ -353,12 +356,12 @@ export default function Home() {
                 className={`alert-card alert-card-${inc.type}`}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <div className={`alert-icon-pill alert-icon-pill-${inc.type}`}>{TYPE_ICON[inc.type]}</div>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: TYPE[inc.type] }}>
-                    {inc.type === 'alert' ? t('common.alert', 'ALERT') : inc.type === 'warn' ? t('common.warning', 'WARNING') : t('common.safe', 'SAFE')}
+                  <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: TYPE[inc.type] }}>
+                    {inc.type === 'alert' ? t('common.alert','ALERT') : inc.type === 'warn' ? t('common.warning','WARNING') : t('common.safe','SAFE')}
                   </span>
                 </div>
-                <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', marginBottom: 4 }}>{inc.name}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{inc.desc}</div>
+                <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', marginBottom: 4 }}>{inc.name}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{inc.desc}</div>
               </motion.div>
             ))}
           </div>
@@ -373,8 +376,8 @@ export default function Home() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
           <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
             style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 10px #22c55e' }} />
-          <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 14, color: 'var(--text-primary)', letterSpacing: '0.04em' }}>LIVE PULSE</span>
-          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--text-muted)' }}>Trending topics, hashtags &amp; live cricket</span>
+          <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 16, color: 'var(--text-primary)', letterSpacing: '0.04em' }}>LIVE PULSE</span>
+          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 13, color: 'var(--text-muted)' }}>Trending topics, hashtags &amp; live cricket</span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 16 }}>
@@ -383,30 +386,30 @@ export default function Home() {
           <div style={{ borderRadius: 'var(--radius)', padding: '16px 18px', background: 'linear-gradient(135deg,rgba(255,102,0,0.08),rgba(255,102,0,0.02))', border: '1px solid rgba(255,102,0,0.18)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <span style={{ fontSize: 18 }}>🔥</span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 12, color: '#FF9933', letterSpacing: '0.07em' }}>TRENDING TOPICS</span>
+              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 14, color: '#FF9933', letterSpacing: '0.07em' }}>TRENDING TOPICS</span>
             </div>
             {dashboard?.insights?.trending?.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 {dashboard.insights.trending.slice(0, 6).map((topic, i) => (
                   <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
                     style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                    <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 10, color: i < 3 ? '#FF6600' : 'var(--text-muted)', minWidth: 20 }}>#{i + 1}</span>
+                    <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 12, color: i < 3 ? '#FF6600' : 'var(--text-muted)', minWidth: 20 }}>#{i + 1}</span>
                     <div style={{ flex: 1 }}>
                       <div style={{ height: 3, borderRadius: 4, marginBottom: 3, background: `linear-gradient(90deg,${i < 3 ? '#FF6600' : '#38bdf8'},transparent)`, width: `${100 - i * 13}%`, opacity: 0.65 }} />
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: i < 3 ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: i < 3 ? 700 : 400 }}>{topic}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: i < 3 ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: i < 3 ? 700 : 400 }}>{topic}</span>
                     </div>
                   </motion.div>
                 ))}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-                {[80, 65, 55, 45, 38, 30].map((w, i) => (
+                {[80,65,55,45,38,30].map((w, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                     <div style={{ width: 20, height: 10, borderRadius: 3, background: 'rgba(255,255,255,0.06)' }} />
                     <div style={{ height: 10, borderRadius: 3, width: `${w}%`, background: 'rgba(255,255,255,0.06)' }} />
                   </div>
                 ))}
-                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
                   {loadingEvents ? '⏳ Loading topics…' : '⚙️ Add Gemini key to enable AI topics'}
                 </div>
               </div>
@@ -417,7 +420,7 @@ export default function Home() {
           <div style={{ borderRadius: 'var(--radius)', padding: '16px 18px', background: 'linear-gradient(135deg,rgba(56,189,248,0.08),rgba(56,189,248,0.02))', border: '1px solid rgba(56,189,248,0.18)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <span style={{ fontSize: 18 }}>📣</span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 12, color: '#38bdf8', letterSpacing: '0.07em' }}>TRENDING HASHTAGS</span>
+              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 14, color: '#38bdf8', letterSpacing: '0.07em' }}>TRENDING HASHTAGS</span>
             </div>
             {dashboard?.hashtags?.length > 0 ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
@@ -427,8 +430,8 @@ export default function Home() {
                     whileHover={{ scale: 1.08, y: -2 }}
                     style={{
                       fontFamily: 'var(--font-ui)', fontWeight: 700,
-                      fontSize: i < 3 ? 13 : i < 6 ? 11 : 10,
-                      padding: i < 3 ? '6px 14px' : '4px 10px',
+                      fontSize: i < 3 ? 15 : i < 6 ? 13 : 12,
+                      padding: i < 3 ? '7px 16px' : '5px 12px',
                       borderRadius: 100,
                       background: i < 3
                         ? 'linear-gradient(135deg,rgba(56,189,248,0.22),rgba(56,189,248,0.08))'
@@ -445,11 +448,11 @@ export default function Home() {
             ) : (
               <>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-                  {[90, 70, 60, 80, 50, 65, 45, 75, 55, 85].map((w, i) => (
+                  {[90,70,60,80,50,65,45,75,55,85].map((w, i) => (
                     <div key={i} style={{ height: 28, borderRadius: 100, width: w, background: 'rgba(255,255,255,0.06)' }} />
                   ))}
                 </div>
-                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--text-muted)', marginTop: 12 }}>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--text-muted)', marginTop: 12 }}>
                   {loadingEvents ? '⏳ Loading hashtags…' : '⚙️ Add Gemini key to enable AI hashtags'}
                 </div>
               </>
@@ -460,7 +463,7 @@ export default function Home() {
           <div style={{ borderRadius: 'var(--radius)', padding: '16px 18px', background: 'linear-gradient(135deg,rgba(34,197,94,0.08),rgba(34,197,94,0.02))', border: '1px solid rgba(34,197,94,0.18)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <span style={{ fontSize: 18 }}>🏏</span>
-              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 12, color: '#22c55e', letterSpacing: '0.07em' }}>LIVE CRICKET</span>
+              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 14, color: '#22c55e', letterSpacing: '0.07em' }}>LIVE CRICKET</span>
               <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.1, repeat: Infinity }}
                 style={{ marginLeft: 'auto', fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 8, padding: '2px 8px', borderRadius: 100, background: 'rgba(34,197,94,0.14)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e', letterSpacing: '0.12em' }}>
                 LIVE
@@ -478,7 +481,7 @@ export default function Home() {
                           style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 9, color: '#f59e0b' }}>● LIVE</motion.span>
                       )}
                     </div>
-                    <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 12, color: 'var(--text-primary)', marginBottom: 5, lineHeight: 1.3 }}>
+                    <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 5, lineHeight: 1.3 }}>
                       {match.teams?.[0]} <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: 10 }}>vs</span> {match.teams?.[1]}
                     </div>
                     {match.score?.length > 0 && (
@@ -492,20 +495,20 @@ export default function Home() {
                         ))}
                       </div>
                     )}
-                    <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: match.matchEnded ? '#f59e0b' : 'var(--text-muted)', lineHeight: 1.4 }}>{match.status}</div>
+                    <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: match.matchEnded ? '#f59e0b' : 'var(--text-muted)', lineHeight: 1.4 }}>{match.status}</div>
                   </motion.div>
                 ))}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {[1, 2, 3].map(i => (
+                {[1,2,3].map(i => (
                   <div key={i} style={{ padding: '11px 13px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                     <div style={{ height: 9, width: '45%', borderRadius: 4, background: 'rgba(255,255,255,0.06)', marginBottom: 8 }} />
                     <div style={{ height: 12, width: '82%', borderRadius: 4, background: 'rgba(255,255,255,0.06)', marginBottom: 6 }} />
                     <div style={{ height: 9, width: '65%', borderRadius: 4, background: 'rgba(255,255,255,0.06)' }} />
                   </div>
                 ))}
-                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+                <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
                   {cricketData?.error || '🏏 Add CRICAPI_KEY in .env for live scores'}
                 </div>
               </div>

@@ -129,7 +129,7 @@ function StateSelector({ activeState, setActiveState }) {
                 fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 11,
                 padding: '5px 12px', borderRadius: 100, cursor: 'pointer', whiteSpace: 'nowrap',
                 background: activeState === s.key ? '#FF6600' : 'var(--bg-card-solid)',
-                color: activeState === s.key ? 'white' : '#9090b0',
+                color: activeState === s.key ? 'white' : 'var(--text-secondary)',
                 border: `1px solid ${activeState === s.key ? '#FF6600' : 'rgba(255,102,0,0.12)'}`,
                 boxShadow: activeState === s.key ? '0 4px 12px rgba(255,102,0,0.25)' : 'none',
               }}>
@@ -204,7 +204,7 @@ export default function News() {
       <div style={{
         position: 'sticky', top: 106, zIndex: 25,
         padding: isMobile ? '8px 12px' : '10px 24px',
-        background: 'rgba(6,6,15,0.97)', backdropFilter: 'blur(16px)',
+        background: 'var(--bg-card)', backdropFilter: 'blur(16px)',
         borderBottom: '1px solid rgba(255,102,0,0.08)',
         display: 'flex', flexDirection: 'column', gap: 8,
       }}>
