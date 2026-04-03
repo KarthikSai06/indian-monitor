@@ -174,7 +174,7 @@ function FeaturedCard({ article }) {
       style={{
         display: 'flex', gap: 0, overflow: 'hidden',
         borderRadius: 14, border: '1px solid var(--border)',
-        background: 'rgba(14,14,30,0.95)',
+        background: 'var(--bg-card)',
         cursor: 'pointer', marginBottom: 4,
         opacity: isTranslating ? 0.7 : 1,
         transition: 'opacity 0.2s',
