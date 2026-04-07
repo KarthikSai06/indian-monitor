@@ -97,64 +97,88 @@ function NewsListContainer({ articles, isLoading, isFetching, onLoadMore, hasMor
 
 // ─── State Selector ──────────────────────────────────────────────────────────
 function StateSelector({ activeState, setActiveState }) {
-  const [offset, setOffset] = useState(0);
+  const [stateSearch, setStateSearch] = useState('');
   const isMobile = useIsMobile();
-  const visCount = isMobile ? 3 : VISIBLE;
-  const visible = ALL_STATES.slice(offset, offset + visCount);
-  const canPrev = offset > 0;
-  const canNext = offset + visCount < ALL_STATES.length;
+
+  const filtered = stateSearch.trim()
+    ? ALL_STATES.filter(s => s.label.toLowerCase().includes(stateSearch.toLowerCase()))
+    : ALL_STATES;
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-      <motion.button onClick={() => setOffset(o => Math.max(0, o - visCount))} disabled={!canPrev}
-        whileHover={canPrev ? { scale: 1.1 } : {}} whileTap={canPrev ? { scale: 0.9 } : {}}
-        style={{
-          width: 28, height: 28, borderRadius: '50%', border: '1px solid rgba(255,102,0,0.15)',
-          background: canPrev ? 'rgba(255,102,0,0.08)' : 'transparent',
-          color: canPrev ? '#FF6600' : '#565680', cursor: canPrev ? 'pointer' : 'default',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 14, flexShrink: 0,
-        }}>‹</motion.button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* Search + count row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ position: 'relative', flex: '0 0 auto', width: isMobile ? 160 : 200 }}>
+          <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 11, pointerEvents: 'none', opacity: 0.5 }}>🔍</span>
+          <input
+            value={stateSearch}
+            onChange={e => setStateSearch(e.target.value)}
+            placeholder="Search state…"
+            style={{
+              width: '100%', paddingLeft: 28, paddingRight: 10, paddingTop: 6, paddingBottom: 6,
+              borderRadius: 20, fontSize: 11,
+              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,102,0,0.15)',
+              color: 'var(--text-primary)', outline: 'none',
+              fontFamily: 'var(--font-ui)',
+              transition: 'border-color 0.15s',
+            }}
+            onFocus={e => e.target.style.borderColor = 'rgba(255,102,0,0.4)'}
+            onBlur={e => e.target.style.borderColor = 'rgba(255,102,0,0.15)'}
+          />
+        </div>
+        <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: '#565680', whiteSpace: 'nowrap' }}>
+          {filtered.length} of {ALL_STATES.length} states
+        </span>
+        {stateSearch && (
+          <button onClick={() => setStateSearch('')} style={{
+            fontFamily: 'var(--font-ui)', fontSize: 10, color: '#FF6600', background: 'none',
+            border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline',
+          }}>Clear</button>
+        )}
+      </div>
 
-      <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-        <AnimatePresence mode="sync">
-          {visible.map(s => (
+      {/* Scrollable state pills */}
+      <div className="state-pill-scroll" style={{
+        display: 'flex', gap: 6, overflowX: 'auto', overflowY: 'hidden',
+        paddingBottom: 4,
+        scrollbarWidth: 'thin',
+        scrollbarColor: 'rgba(255,102,0,0.25) transparent',
+      }}>
+        <style>{`
+          .state-pill-scroll::-webkit-scrollbar { height: 3px; }
+          .state-pill-scroll::-webkit-scrollbar-track { background: transparent; }
+          .state-pill-scroll::-webkit-scrollbar-thumb { background: rgba(255,102,0,0.25); border-radius: 3px; }
+          .state-pill-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,102,0,0.45); }
+        `}</style>
+        {filtered.length === 0 ? (
+          <span style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: '#565680', padding: '4px 0' }}>
+            No states match "{stateSearch}"
+          </span>
+        ) : (
+          filtered.map(s => (
             <motion.button key={s.key}
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.85 }}
-              onClick={() => setActiveState(s.key)}
+              onClick={() => { setActiveState(s.key); setStateSearch(''); }}
               whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               style={{
                 fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 11,
-                padding: '5px 12px', borderRadius: 100, cursor: 'pointer', whiteSpace: 'nowrap',
+                padding: '5px 14px', borderRadius: 100, cursor: 'pointer',
+                whiteSpace: 'nowrap', flexShrink: 0,
                 background: activeState === s.key ? '#FF6600' : 'var(--bg-card-solid)',
                 color: activeState === s.key ? 'white' : 'var(--text-secondary)',
                 border: `1px solid ${activeState === s.key ? '#FF6600' : 'rgba(255,102,0,0.12)'}`,
                 boxShadow: activeState === s.key ? '0 4px 12px rgba(255,102,0,0.25)' : 'none',
+                transition: 'background 0.15s, border-color 0.15s',
               }}>
               {s.label}
             </motion.button>
-          ))}
-        </AnimatePresence>
+          ))
+        )}
       </div>
-
-      <motion.button onClick={() => setOffset(o => Math.min(ALL_STATES.length - visCount, o + visCount))} disabled={!canNext}
-        whileHover={canNext ? { scale: 1.1 } : {}} whileTap={canNext ? { scale: 0.9 } : {}}
-        style={{
-          width: 28, height: 28, borderRadius: '50%', border: '1px solid rgba(255,102,0,0.15)',
-          background: canNext ? 'rgba(255,102,0,0.08)' : 'transparent',
-          color: canNext ? '#FF6600' : '#565680', cursor: canNext ? 'pointer' : 'default',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 14, flexShrink: 0,
-        }}>›</motion.button>
-
-      <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: '#565680', whiteSpace: 'nowrap' }}>
-        {offset + 1}–{Math.min(offset + visCount, ALL_STATES.length)} of {ALL_STATES.length}
-      </span>
     </div>
   );
 }
+
 
 export default function News() {
   const [subTab, setSubTab] = useState('national');
@@ -166,13 +190,24 @@ export default function News() {
   const { t } = useTranslation();
 
   const SUB_NAVS = [
-    { id: 'national',       label: `🇮🇳 ${t('nav.national', 'National')}` },
-    { id: 'state',          label: `🏳 ${t('nav.state', 'State')}` },
-    { id: 'entertainment',  label: `🎬 ${t('nav.entertainment', 'Entertainment')}` },
-    { id: 'currentAffairs', label: `📅 ${t('nav.currentAffairs', 'Current Affairs')}` },
+    { id: 'national',       label: `🇮🇳 National News` },
+    { id: 'state',          label: `🏛️ State News` },
+    { id: 'sports',         label: `🏏 Sports News` },
+    { id: 'cinema',         label: `🎬 Cinema News` },
+    { id: 'technology',     label: `💻 Technology` },
+    { id: 'defence',        label: `🎯 Defence News` },
+    { id: 'crime',          label: `🚨 Crime News` },
+    { id: 'currentAffairs', label: `📅 Current Affairs` },
   ];
 
-  const cat = subTab === 'state' ? activeState : subTab === 'currentAffairs' ? 'currentaffairs' : subTab;
+  const cat = subTab === 'state' ? activeState
+    : subTab === 'currentAffairs' ? 'currentaffairs'
+    : subTab === 'cinema' ? 'entertainment'
+    : subTab === 'sports' ? 'sports'
+    : subTab === 'technology' ? 'technology'
+    : subTab === 'defence' ? 'defence'
+    : subTab === 'crime' ? 'crime'
+    : subTab;
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['news', cat, page, q],
@@ -208,15 +243,27 @@ export default function News() {
         borderBottom: '1px solid rgba(255,102,0,0.08)',
         display: 'flex', flexDirection: 'column', gap: 8,
       }}>
-        {/* Tab pills + search */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <div className="pill-tabs">
+        {/* Scrollbar + search row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Horizontally scrollable pill tabs */}
+          <div className="news-pill-scroll" style={{
+            flex: 1, overflowX: 'auto', overflowY: 'hidden',
+            display: 'flex', gap: 6, paddingBottom: 4,
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgba(255,102,0,0.3) transparent',
+          }}>
+            <style>{`
+              .news-pill-scroll::-webkit-scrollbar { height: 4px; }
+              .news-pill-scroll::-webkit-scrollbar-track { background: transparent; }
+              .news-pill-scroll::-webkit-scrollbar-thumb { background: rgba(255,102,0,0.3); border-radius: 4px; }
+              .news-pill-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,102,0,0.5); }
+            `}</style>
             {SUB_NAVS.map(t => {
               const isA = t.id === subTab;
               return (
                 <button key={t.id} onClick={() => { setSubTab(t.id); setPage(1); }}
                   className={`pill-tab ${isA ? 'active' : ''}`}
-                  style={{ position: 'relative' }}>
+                  style={{ position: 'relative', flexShrink: 0, whiteSpace: 'nowrap' }}>
                   {isA && (
                     <motion.div layoutId="newsSubPill"
                       style={{ position: 'absolute', inset: 0, borderRadius: 100, background: 'var(--saffron)' }}
@@ -228,12 +275,13 @@ export default function News() {
             })}
           </div>
 
-          {/* Search */}
-          <div style={{ position: 'relative', marginLeft: isMobile ? 0 : 'auto', flex: isMobile ? '1 1 100%' : '0 0 auto' }}>
-            {/* <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('common.search', 'Search news…')}
+          {/* Search input */}
+          <div style={{ position: 'relative', flexShrink: 0, width: isMobile ? 140 : 220 }}>
+            <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, pointerEvents: 'none', opacity: 0.5 }}>🔍</span>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('common.search', 'Search news…')}
               style={{
-                paddingLeft: 30, paddingRight: 12, paddingTop: 7, paddingBottom: 7,
-                borderRadius: 20, width: isMobile ? '100%' : 200, fontSize: 12,
+                width: '100%', paddingLeft: 30, paddingRight: 12, paddingTop: 7, paddingBottom: 7,
+                borderRadius: 20, fontSize: 12,
                 background: 'var(--bg-card2)', border: '1px solid var(--border)',
                 color: 'var(--text-primary)', outline: 'none',
                 fontFamily: 'var(--font-body)',
@@ -241,7 +289,7 @@ export default function News() {
               }}
               onFocus={e => e.target.style.borderColor = 'rgba(255,102,0,0.3)'}
               onBlur={e => e.target.style.borderColor = 'var(--border)'}
-            /> */}
+            />
           </div>
         </div>
 
