@@ -7,11 +7,12 @@ export default function Navbar() {
   const { t } = useTranslation();
 
   const TABS = [
-    { id: 'home',     path: '/',         label: t('nav.home', 'Home'),     sublabel: 'Dashboard', icon: '🏠' },
-    { id: 'news',     path: '/news',     label: t('nav.news', 'News'),     sublabel: 'Live Feed', icon: '📰' },
-    { id: 'economy',  path: '/economy',  label: 'Global',                  sublabel: 'Economy',   icon: '📈' },
-    { id: 'weather',  path: '/weather',  label: t('nav.weather', 'Weather'), sublabel: 'India',   icon: '⛈️' },
-    { id: 'festivals', path: '/festivals', label: 'Festivals',             sublabel: 'Events',    icon: '🎪' },
+    { id: 'home',      path: '/',          label: t('nav.home', 'Home'),     sublabel: 'Dashboard',    icon: '🏠' },
+    { id: 'news',      path: '/news',      label: t('nav.news', 'News'),     sublabel: 'Live Feed',    icon: '📰' },
+    { id: 'economy',   path: '/economy',   label: 'Global',                  sublabel: 'Economy',      icon: '📈' },
+    { id: 'weather',   path: '/weather',   label: t('nav.weather', 'Weather'), sublabel: 'India',      icon: '⛈️' },
+    { id: 'festivals', path: '/festivals', label: 'Festivals',               sublabel: 'Events',       icon: '🎪' },
+    { id: 'education', path: '/education', label: 'Education',               sublabel: 'Learn & Grow', icon: '🎓' },
   ];
 
   const activeId = TABS.find(t =>
