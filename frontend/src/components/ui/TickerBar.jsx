@@ -37,7 +37,7 @@ export default function TickerBar({ items = [], label = '🔴 BREAKING' }) {
           {doubled.map((t, i) => (
             <span key={i} style={{
               fontFamily: 'Rajdhani, sans-serif', fontSize: 13, fontWeight: 600,
-              color: '#c8c8d8', flexShrink: 0, paddingRight: 48,
+              color: 'var(--text-secondary)', flexShrink: 0, paddingRight: 48,
             }}>
               <span style={{ color: '#FF6600', marginRight: 6 }}>◆</span>
               {t}

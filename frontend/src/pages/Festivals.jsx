@@ -280,7 +280,7 @@ function FestivalDetail({ f, onClose }) {
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%', maxWidth: 820, borderRadius: 24, overflow: 'hidden',
-          background: 'rgba(10,11,18,0.98)', border: `1px solid ${f.color}44`,
+          background: 'var(--bg-card)', border: `1px solid ${f.color}44`,
           boxShadow: `0 24px 80px rgba(0,0,0,0.8), 0 0 0 1px ${f.color}22`,
           maxHeight: '90vh', overflowY: 'auto',
         }}
@@ -288,12 +288,12 @@ function FestivalDetail({ f, onClose }) {
         {/* Clean Gradient Header — no images */}
         <div style={{
           padding: '32px 28px 28px',
-          background: `linear-gradient(135deg, ${f.color}20 0%, rgba(6,6,15,0.9) 100%)`,
+          background: `linear-gradient(135deg, ${f.color}20 0%, var(--bg-card-solid) 100%)`,
           borderBottom: `1px solid ${f.color}22`, position: 'relative',
         }}>
           <button onClick={onClose} style={{
             position: 'absolute', top: 16, right: 16, width: 34, height: 34,
-            borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.08)',
+            borderRadius: '50%', border: 'none', background: 'var(--bg-card-solid)',
             color: '#94a3b8', fontSize: 16, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>✕</button>
@@ -315,7 +315,7 @@ function FestivalDetail({ f, onClose }) {
                 <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 10, padding: '3px 10px', borderRadius: 100, background: `${f.color}22`, color: f.color, border: `1px solid ${f.color}45` }}>{f.state}</span>
                 <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: '#64748b' }}>📅 {f.month}</span>
               </div>
-              <h2 style={{ margin: '0 0 8px', fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 800, color: '#f0f0f8' }}>{f.festival}</h2>
+              <h2 style={{ margin: '0 0 8px', fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 800, color: 'var(--text-primary)' }}>{f.festival}</h2>
               <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 12, color: '#64748b', lineHeight: 1.5 }}>{f.desc}</p>
             </div>
           </div>
@@ -329,7 +329,7 @@ function FestivalDetail({ f, onClose }) {
               <div style={{ width: 3, height: 16, background: f.color, borderRadius: 2 }} />
               <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 11, color: f.color, textTransform: 'uppercase', letterSpacing: '0.08em' }}>About the Festival</div>
             </div>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: '#cbd5e1', lineHeight: 1.8, margin: 0, padding: '16px 18px', borderRadius: 12, background: 'rgba(255,255,255,0.02)', border: `1px solid ${f.color}18` }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.8, margin: 0, padding: '16px 18px', borderRadius: 12, background: 'var(--bg-card-solid)', border: `1px solid ${f.color}18` }}>
               {f.fullDesc}
             </p>
           </div>
@@ -342,16 +342,16 @@ function FestivalDetail({ f, onClose }) {
                 {(f.traditions || []).map((t, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                     <span style={{ color: f.color, fontSize: 10, marginTop: 3, flexShrink: 0 }}>▶</span>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#94a3b8', lineHeight: 1.5 }}>{t}</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{t}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <div style={{ padding: '16px 18px', borderRadius: 14, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 11, color: '#f0f0f8', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.07em' }}>✨ Key Highlights</div>
+            <div style={{ padding: '16px 18px', borderRadius: 14, background: 'var(--bg-card-solid)', border: '1px solid var(--glass-border)' }}>
+              <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 11, color: 'var(--text-primary)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.07em' }}>✨ Key Highlights</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {(f.highlights || []).map((h, i) => (
-                  <div key={i} style={{ padding: '9px 12px', borderRadius: 8, background: `${f.color}08`, border: `1px solid ${f.color}18`, fontFamily: 'var(--font-body)', fontSize: 12, color: '#cbd5e1', lineHeight: 1.4 }}>
+                  <div key={i} style={{ padding: '9px 12px', borderRadius: 8, background: `${f.color}08`, border: `1px solid ${f.color}18`, fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
                     {h}
                   </div>
                 ))}
@@ -453,10 +453,10 @@ export default function Festivals() {
       <div className="page" style={{ paddingTop: 8 }}>
         {/* Banner */}
         <div style={{ borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: 20, border: '1px solid rgba(255,102,0,0.1)', position: 'relative' }}>
-          <img src="/festivals-banner.png" alt="Indian Festivals" style={{ width: '100%', height: isMobile ? 120 : 180, objectFit: 'cover', display: 'block', filter: 'brightness(0.65)' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(6,6,15,0.95), rgba(6,6,15,0.5), rgba(6,6,15,0.3))', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: isMobile ? '16px 20px' : '24px 32px' }}>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? 24 : 32, color: '#FF6600', margin: 0, textShadow: '0 2px 20px rgba(255,102,0,0.4)' }}>🎪 Festivals of India</h2>
-            <p style={{ fontFamily: 'var(--font-ui)', fontSize: isMobile ? 11 : 14, color: '#d0d0e8', margin: '4px 0 0', letterSpacing: '0.04em' }}>
+          <img src="/festivals-banner.png" alt="Indian Festivals" style={{ width: '100%', height: isMobile ? 120 : 180, objectFit: 'cover', display: 'block', filter: 'brightness(0.88) saturate(1.1)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, var(--bg-card) 10%, rgba(0,0,0,0.15) 50%, transparent 80%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: isMobile ? '16px 20px' : '24px 32px' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? 24 : 32, color: '#FF6600', margin: 0, textShadow: '0 2px 20px rgba(255,102,0,0.5)' }}>🎪 Festivals of India</h2>
+            <p style={{ fontFamily: 'var(--font-ui)', fontSize: isMobile ? 11 : 14, color: 'var(--text-secondary)', margin: '4px 0 0', letterSpacing: '0.04em', textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
               Click any festival to explore full details, traditions & celebrations
             </p>
           </div>

@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import useStore from '../store/useStore';
 
 export default function SettingsModal({ open, onClose }) {
   const [apiKey, setApiKey] = useState('');
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null); // null | 'ok' | 'fail'
+  const { theme } = useStore();
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     if (open) {
@@ -65,15 +68,15 @@ export default function SettingsModal({ open, onClose }) {
             exit={{ opacity: 0, scale: 0.88, y: 24 }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             className="card"
-            style={{ width: '90%', maxWidth: 440, padding: 28, border: '1px solid rgba(255,102,0,0.25)', background: 'rgba(8,8,20,0.98)' }}
+            style={{ width: '90%', maxWidth: 440, padding: 28, border: isDark ? '1px solid rgba(255,102,0,0.25)' : '1px solid rgba(0,0,0,0.1)', background: isDark ? 'rgba(8,8,20,0.98)' : 'rgba(255,255,255,0.98)' }}
           >
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <div style={{ fontSize: 22 }}>⚙️</div>
-              <h2 style={{ fontFamily: 'var(--font-ui)', color: '#FF6600', margin: 0, fontSize: 18 }}>API Settings</h2>
+              <h2 style={{ fontFamily: 'var(--font-ui)', color: '#FF6600', margin: 0, fontSize: 20 }}>API Settings</h2>
             </div>
 
-            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
               Bharat Monitor uses <b style={{ color: 'var(--text-secondary)' }}>Google Gemini AI</b> for live news insights, translation, and AI chat.
               Enter your free <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" style={{ color: '#FF9933', textDecoration: 'underline' }}>Gemini API Key</a> below.
               It's stored only in your local browser.
@@ -90,7 +93,7 @@ export default function SettingsModal({ open, onClose }) {
                   width: '100%', padding: '12px 16px', borderRadius: 10, boxSizing: 'border-box',
                   background: 'rgba(255,255,255,0.04)',
                   border: `1px solid ${testResult === 'ok' ? 'rgba(34,197,94,0.5)' : testResult === 'fail' ? 'rgba(239,68,68,0.5)' : 'rgba(255,102,0,0.25)'}`,
-                  color: '#fff', fontSize: 13, outline: 'none',
+                  color: 'var(--text-primary)', fontSize: 14, outline: 'none',
                   fontFamily: 'var(--font-body)', letterSpacing: '0.04em',
                   transition: 'border-color 0.2s',
                 }}
