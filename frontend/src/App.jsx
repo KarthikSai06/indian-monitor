@@ -19,6 +19,7 @@ import EconomyMarkets from './pages/EconomyMarkets';
 import GlobalEconomy from './pages/GlobalEconomy';
 import Weather from './pages/Weather';
 import Festivals from './pages/Festivals';
+import Education from './pages/Education';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } },
@@ -122,7 +123,7 @@ function AnimatedRoutes() {
           <Route path="/news" element={<News />} />
           <Route path="/economy" element={<GlobalEconomy />} />
           <Route path="/weather" element={<Weather />} />
-          <Route path="/festivals" element={<Festivals />} />
+          {<Route path="/festivals" element={<Festivals />} />}
           <Route path="/map" element={<Home />} />
           <Route path="/live" element={<News />} />
           <Route path="/ai" element={<Home />} />
@@ -130,6 +131,7 @@ function AnimatedRoutes() {
           <Route path="/markets" element={<GlobalEconomy />} />
           <Route path="/entertainment" element={<News />} />
           <Route path="/current-affairs" element={<News />} />
+          <Route path="/education" element={<Education />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </AnimatePresence>
