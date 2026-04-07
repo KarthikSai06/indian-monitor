@@ -232,7 +232,7 @@ export default function SettingsModal({ open, onClose }) {
                 }}
               >
                 {currentProvider?.models.map(m => (
-                  <option key={m} value={m} style={{ background: '#0e0e1e' }}>{m}</option>
+                  <option key={m} value={m} style={{ background: isDark ? '#0e0e1e' : '#ffffff', color: 'var(--text-primary)' }}>{m}</option>
                 ))}
               </select>
             </div>
