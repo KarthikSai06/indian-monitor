@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import useStore from '../store/useStore';
 
 const STEPS = [
   { text: 'Connecting to news feeds…',  icon: '📡' },
@@ -49,6 +50,8 @@ function AshokaChakra({ size = 140, spinning = true }) {
 }
 
 export default function Loader({ onComplete }) {
+  const { theme } = useStore();
+  const isDark = theme === 'dark';
   const [progress, setProgress] = useState(0);
   const [stepIndex, setStepIndex] = useState(0);
 
@@ -74,7 +77,7 @@ export default function Loader({ onComplete }) {
         position: 'fixed', inset: 0, zIndex: 9999,
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        background: 'radial-gradient(ellipse at 50% 35%, rgba(255,102,0,0.09) 0%, #05050f 65%)',
+        background: isDark ? 'radial-gradient(ellipse at 50% 35%, rgba(255,102,0,0.09) 0%, #05050f 65%)' : 'radial-gradient(ellipse at 50% 35%, rgba(255,102,0,0.12) 0%, #f5f3f0 65%)',
         overflow: 'hidden',
       }}
     >
@@ -152,7 +155,7 @@ export default function Loader({ onComplete }) {
         </div>
         <div style={{
           fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 11,
-          letterSpacing: '0.35em', color: '#565680',
+          letterSpacing: '0.35em', color: isDark ? '#565680' : '#8888a0',
         }}>
           INDIA'S LIVE INTELLIGENCE HUB
         </div>
@@ -165,7 +168,7 @@ export default function Loader({ onComplete }) {
         transition={{ delay: 0.5 }}
         style={{ width: 280, marginBottom: 12 }}
       >
-        <div style={{ width: '100%', height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+        <div style={{ width: '100%', height: 3, borderRadius: 2, background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)', overflow: 'hidden' }}>
           <motion.div
             style={{ height: '100%', borderRadius: 2 }}
             animate={{
@@ -179,7 +182,7 @@ export default function Loader({ onComplete }) {
             transition={{ width: { ease: 'linear' }, background: { duration: 2, repeat: Infinity } }}
           />
         </div>
-        <div style={{ textAlign: 'right', fontFamily: 'Rajdhani, sans-serif', fontSize: 11, color: '#565680', marginTop: 4 }}>
+        <div style={{ textAlign: 'right', fontFamily: 'Rajdhani, sans-serif', fontSize: 11, color: isDark ? '#565680' : '#8888a0', marginTop: 4 }}>
           {Math.round(progress)}%
         </div>
       </motion.div>
@@ -193,7 +196,7 @@ export default function Loader({ onComplete }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.22 }}
-            style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 13, color: '#9090b0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+            style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 13, color: isDark ? '#9090b0' : '#555570', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
           >
             <span>{STEPS[stepIndex].icon}</span>
             {STEPS[stepIndex].text}

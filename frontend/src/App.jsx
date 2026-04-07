@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -19,6 +19,7 @@ import EconomyMarkets from './pages/EconomyMarkets';
 import GlobalEconomy from './pages/GlobalEconomy';
 import Weather from './pages/Weather';
 import Festivals from './pages/Festivals';
+import Education from './pages/Education';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } },
@@ -122,7 +123,7 @@ function AnimatedRoutes() {
           <Route path="/news" element={<News />} />
           <Route path="/economy" element={<GlobalEconomy />} />
           <Route path="/weather" element={<Weather />} />
-          <Route path="/festivals" element={<Festivals />} />
+          {<Route path="/festivals" element={<Festivals />} />}
           <Route path="/map" element={<Home />} />
           <Route path="/live" element={<News />} />
           <Route path="/ai" element={<Home />} />
@@ -130,6 +131,7 @@ function AnimatedRoutes() {
           <Route path="/markets" element={<GlobalEconomy />} />
           <Route path="/entertainment" element={<News />} />
           <Route path="/current-affairs" element={<News />} />
+          <Route path="/education" element={<Education />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </AnimatePresence>
@@ -140,6 +142,8 @@ function AnimatedRoutes() {
 function AppShell() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const { theme } = useStore();
+  const isDark = theme === 'dark';
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-dark)' }}>
@@ -155,13 +159,13 @@ function AppShell() {
         title="API Settings"
         style={{
           position: 'fixed', bottom: 76, right: 24, zIndex: 900,
-          width: 42, height: 42, borderRadius: '50%', border: 'none',
-          background: 'rgba(6,6,15,0.85)',
-          border: '1px solid rgba(255,102,0,0.3)',
+          width: 46, height: 46, borderRadius: '50%', border: 'none',
+          background: isDark ? 'rgba(6,6,15,0.85)' : 'rgba(255,255,255,0.9)',
+          border: isDark ? '1px solid rgba(255,102,0,0.3)' : '1px solid rgba(0,0,0,0.12)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', fontSize: 18, color: '#9090b0',
+          cursor: 'pointer', fontSize: 20, color: isDark ? '#9090b0' : '#555570',
           backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+          boxShadow: isDark ? '0 4px 16px rgba(0,0,0,0.4)' : '0 4px 16px rgba(0,0,0,0.1)',
         }}
       >
         ⚙️
@@ -175,15 +179,15 @@ function AppShell() {
         title="About Bharat Monitor"
         style={{
           position: 'fixed', bottom: 24, right: 24, zIndex: 900,
-          width: 42, height: 42, borderRadius: '50%', border: 'none',
-          background: 'rgba(255,102,0,0.12)',
-          border: '1px solid rgba(255,102,0,0.3)',
+          width: 46, height: 46, borderRadius: '50%', border: 'none',
+          background: isDark ? 'rgba(255,102,0,0.12)' : 'rgba(255,102,0,0.08)',
+          border: isDark ? '1px solid rgba(255,102,0,0.3)' : '1px solid rgba(255,102,0,0.25)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer',
-          fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 16,
+          fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 18,
           color: '#FF9933',
           backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+          boxShadow: isDark ? '0 4px 16px rgba(0,0,0,0.4)' : '0 4px 16px rgba(0,0,0,0.1)',
         }}
       >
         ℹ
@@ -200,7 +204,12 @@ function AppShell() {
 export default function App() {
   const [loaded, setLoaded] = useState(false);
   const [onboarded, setOnboarded] = useState(false);
-  const { onboardingDone } = useStore();
+  const { onboardingDone, theme } = useStore();
+
+  // Apply persisted theme on mount
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   if (!loaded) return <AnimatePresence><Loader key="loader" onComplete={() => setLoaded(true)} /></AnimatePresence>;
 

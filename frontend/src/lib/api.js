@@ -38,4 +38,15 @@ export const fetchWeatherSummary = (city, weatherData) =>
 export const fetchLiveStreams = () =>
   api.get('/live-streams').then(r => r.data);
 
+export const fetchCrimeNews = ({ category = 'all', page = 1, search = '', state = '', priority = '' } = {}) =>
+  api.get('/crime', { params: { category, page, limit: 30, search, state, priority } }).then(r => r.data);
+
+export const fetchEducationNews = ({ category = 'all', page = 1, search = '', limit = 20 } = {}) => {
+  const geminiKey = localStorage.getItem('gemini_key') || '';
+  return api.get('/education', {
+    params: { category, page, limit, search },
+    headers: geminiKey ? { 'X-Gemini-Key': geminiKey } : {},
+  }).then(r => r.data);
+};
+
 export default api;

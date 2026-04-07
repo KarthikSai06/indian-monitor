@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import useStore from '../store/useStore';
 
 const TECH = ['React 18', 'Vite', 'Framer Motion', 'Gemini AI', 'TailwindCSS', 'Recharts', 'Open-Meteo', 'Leaflet', 'i18next', 'Zustand'];
 const FEATURES = [
@@ -17,6 +18,8 @@ const FEATURES = [
 ];
 
 export default function AboutModal({ open, onClose }) {
+  const { theme } = useStore();
+  const isDark = theme === 'dark';
   // Lock body scroll when open
   useEffect(() => {
     if (open) {
@@ -63,9 +66,9 @@ export default function AboutModal({ open, onClose }) {
               width: '100%', maxWidth: 640,
               maxHeight: '88vh', overflowY: 'auto',
               borderRadius: 20,
-              background: 'rgba(10,10,22,0.98)',
-              border: '1px solid rgba(255,102,0,0.25)',
-              boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,102,0,0.08)',
+              background: isDark ? 'rgba(10,10,22,0.98)' : 'rgba(255,255,255,0.98)',
+              border: isDark ? '1px solid rgba(255,102,0,0.25)' : '1px solid rgba(0,0,0,0.1)',
+              boxShadow: isDark ? '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,102,0,0.08)' : '0 32px 80px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)',
               position: 'relative',
             }}
           >
@@ -82,7 +85,7 @@ export default function AboutModal({ open, onClose }) {
                   <div style={{ fontFamily: 'Yatra One, cursive', fontSize: 28, color: '#FF6600', lineHeight: 1.2 }}>
                     Bharat Monitor
                   </div>
-                  <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 13, color: '#565680', marginTop: 4 }}>
+                  <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--text-muted)', marginTop: 4 }}>
                     India's Live Intelligence Hub — v2.0
                   </div>
                 </div>
@@ -98,12 +101,12 @@ export default function AboutModal({ open, onClose }) {
               </div>
 
               {/* Description */}
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#9090b0', lineHeight: 1.7, marginBottom: 28 }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 28 }}>
                 A real-time intelligence platform built for every Indian — bringing together live news from across the nation in <strong style={{ color: '#FF9933' }}>10 languages</strong>, powered by <strong style={{ color: '#FF9933' }}>Google Gemini AI</strong> for insights and translation, with live maps, markets, and weather.
               </p>
 
               {/* Features */}
-              <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 11, letterSpacing: '0.12em', color: '#FF6600', marginBottom: 12 }}>
+              <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 13, letterSpacing: '0.12em', color: '#FF6600', marginBottom: 12 }}>
                 ✦ FEATURES
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, marginBottom: 28 }}>
@@ -113,20 +116,20 @@ export default function AboutModal({ open, onClose }) {
                     background: 'rgba(255,102,0,0.06)', border: '1px solid rgba(255,102,0,0.1)',
                   }}>
                     <div style={{ fontSize: 22, marginBottom: 4 }}>{f.icon}</div>
-                    <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 10, color: '#9090b0' }}>{f.label}</div>
+                    <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)' }}>{f.label}</div>
                   </div>
                 ))}
               </div>
 
               {/* Tech stack */}
-              <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 11, letterSpacing: '0.12em', color: '#FF6600', marginBottom: 12 }}>
+              <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 13, letterSpacing: '0.12em', color: '#FF6600', marginBottom: 12 }}>
                 ✦ TECH STACK
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 28 }}>
                 {TECH.map(t => (
                   <span key={t} style={{
-                    fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 12,
-                    padding: '4px 12px', borderRadius: 100,
+                    fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 13,
+                    padding: '5px 14px', borderRadius: 100,
                     background: 'rgba(255,102,0,0.08)', color: '#FF9933',
                     border: '1px solid rgba(255,102,0,0.2)',
                   }}>{t}</span>
@@ -137,8 +140,8 @@ export default function AboutModal({ open, onClose }) {
               <div style={{
                 padding: '12px 16px', borderRadius: 10,
                 background: 'rgba(255,102,0,0.04)', border: '1px solid rgba(255,102,0,0.1)',
-                fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 12,
-                color: '#565680', textAlign: 'center',
+                fontFamily: 'Rajdhani, sans-serif', fontWeight: 600, fontSize: 14,
+                color: 'var(--text-muted)', textAlign: 'center',
               }}>
                 🇮🇳 &nbsp; Built with pride for India &nbsp; • &nbsp; Data refreshes every 10 minutes
               </div>

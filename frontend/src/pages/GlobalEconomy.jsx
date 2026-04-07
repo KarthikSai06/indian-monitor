@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMarkets, fetchLiveMarkets, fetchNews } from '../lib/api';
+import useStore from '../store/useStore';
 import NewsCard from '../components/ui/NewsCard';
 import {
   AreaChart, Area, LineChart, Line, BarChart, Bar,
@@ -110,16 +111,16 @@ const Sparkline = ({ data, color, height = 30 }) => (
 
 const NeonCard = ({ children, style = {} }) => (
   <motion.div
-    whileHover={{ y: -3, boxShadow: '0 8px 30px rgba(0,0,0,0.4)', borderColor: 'rgba(255,255,255,0.1)' }}
+    whileHover={{ y: -3, boxShadow: '0 8px 30px rgba(0,0,0,0.15)', borderColor: 'var(--glass-border)' }}
     style={{
-      background: 'rgba(12, 13, 20, 0.7)',
+      background: 'var(--bg-card)',
       backdropFilter: 'blur(16px)',
       WebkitBackdropFilter: 'blur(16px)',
-      border: '1px solid rgba(255, 255, 255, 0.05)',
+      border: '1px solid var(--glass-border)',
       borderRadius: '16px',
       overflow: 'hidden',
       transition: 'border-color 0.3s ease',
-      boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+      boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
       ...style
     }}
   >
@@ -134,6 +135,8 @@ export default function GlobalEconomy() {
   const [currencies, setCurrencies] = useState(CURRENCIES);
   const [activeNav, setActiveNav] = useState(0);
   const isMobile = useIsMobile();
+  const { theme } = useStore();
+  const isDark = theme === 'dark';
   const [liveIdx, setLiveIdx] = useState([]);
   const [prevIdx, setPrevIdx] = useState([]);
 
@@ -210,8 +213,8 @@ export default function GlobalEconomy() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#040509',
-      color: '#e2e8f0',
+      background: 'var(--bg-dark)',
+      color: 'var(--text-primary)',
       fontFamily: '"Inter", "Rajdhani", sans-serif',
       display: 'flex',
       flexDirection: 'column'
@@ -222,7 +225,7 @@ export default function GlobalEconomy() {
       {liveIndices.length > 0 && (
         <div style={{
           overflow: 'hidden', height: 38, display: 'flex', alignItems: 'center',
-          background: 'rgba(6,6,15,0.97)', borderBottom: '1px solid rgba(255,102,0,0.1)',
+          background: 'var(--bg-card)', borderBottom: '1px solid rgba(255,102,0,0.1)',
           flexShrink: 0,
         }}>
           <div style={{
@@ -244,7 +247,7 @@ export default function GlobalEconomy() {
                 return (
                   <span key={i} style={{ flexShrink: 0, paddingRight: 36, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                     <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 11, color: '#FF9933' }}>{idx.label}</span>
-                    <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 12, color: '#f0f0f8' }}>
+                    <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 12, color: 'var(--text-primary)' }}>
                       {typeof idx.price === 'number' ? idx.price.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : idx.price}
                     </span>
                     <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 10, color: up ? '#22c55e' : '#ef4444' }}>
@@ -294,9 +297,9 @@ export default function GlobalEconomy() {
               <div style={{ display: 'flex', gap: 8 }}>
                 {COUNTRIES.map(ctry => (
                   <button key={ctry} onClick={() => setFilter(ctry)} style={{
-                    background: filter === ctry ? '#fff' : 'transparent',
-                    border: filter === ctry ? '1px solid #fff' : '1px solid rgba(255,255,255,0.4)',
-                    color: filter === ctry ? '#040509' : 'rgba(255,255,255,0.8)',
+                    background: filter === ctry ? (isDark ? '#fff' : '#1a1a2e') : 'transparent',
+                    border: filter === ctry ? (isDark ? '1px solid #fff' : '1px solid #1a1a2e') : '1px solid var(--glass-border)',
+                    color: filter === ctry ? (isDark ? '#040509' : '#fff') : 'var(--text-secondary)',
                     padding: '4px 14px', borderRadius: '30px', cursor: 'pointer', fontSize: 11, fontWeight: 700, transition: 'all 0.2s', fontFamily: 'Inter, sans-serif'
                   }}>
                     {ctry === 'All' ? 'G10' : ctry.toUpperCase()}
@@ -304,14 +307,14 @@ export default function GlobalEconomy() {
                 ))}
               </div>
             </div>
-            <div style={{ height: 380, background: 'rgba(0, 0, 0, 0.2)', borderRadius: 12, padding: '20px 0' }}>
+            <div style={{ height: 380, background: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.03)', borderRadius: 12, padding: '20px 0' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={TREND_DATA} margin={{ top: 10, right: 40, left: 10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                  <XAxis dataKey="time" stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={true} minTickGap={30} />
-                  <YAxis orientation="right" stroke="rgba(255,255,255,0.4)" fontSize={10} tickLine={false} axisLine={false} domain={['auto', 'auto']} tickFormatter={(v) => (v / 1000).toFixed(1) + 'k'} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'} vertical={false} />
+                  <XAxis dataKey="time" stroke={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'} fontSize={10} tickLine={false} axisLine={true} minTickGap={30} />
+                  <YAxis orientation="right" stroke={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'} fontSize={10} tickLine={false} axisLine={false} domain={['auto', 'auto']} tickFormatter={(v) => (v / 1000).toFixed(1) + 'k'} />
                   <Tooltip
-                    contentStyle={{ background: 'rgba(12,13,20,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, backdropFilter: 'blur(10px)' }}
+                    contentStyle={{ background: isDark ? 'rgba(12,13,20,0.95)' : 'rgba(255,255,255,0.95)', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)', borderRadius: 8, backdropFilter: 'blur(10px)', color: isDark ? '#e2e8f0' : '#1a1a2e' }}
                     itemStyle={{ fontSize: 13, fontWeight: 600 }}
                   />
                   {(filter === 'All' || filter === 'India') && <Line type="linear" dataKey="Sensex" stroke="#c026d3" strokeWidth={2.5} dot={false} style={{ filter: 'drop-shadow(0px 4px 6px rgba(192, 38, 211, 0.6))' }} activeDot={{ r: 6, fill: '#fff', stroke: '#c026d3' }} />}
@@ -330,10 +333,10 @@ export default function GlobalEconomy() {
               <div style={{ height: 220 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={SECTOR_DATA} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} axisLine={false} tickLine={false} />
-                    <YAxis stroke="#94a3b8" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}%`} />
-                    <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ background: '#0c0d14', border: '1px solid #1e293b', borderRadius: 8 }} formatter={(val) => [`${val}%`, 'Performance']} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)'} vertical={false} />
+                    <XAxis dataKey="name" stroke={isDark ? '#94a3b8' : '#64748b'} fontSize={11} axisLine={false} tickLine={false} />
+                    <YAxis stroke={isDark ? '#94a3b8' : '#64748b'} fontSize={11} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}%`} />
+                    <Tooltip cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }} contentStyle={{ background: isDark ? '#0c0d14' : '#fff', border: isDark ? '1px solid #1e293b' : '1px solid #e2e8f0', borderRadius: 8, color: isDark ? '#e2e8f0' : '#1a1a2e' }} formatter={(val) => [`${val}%`, 'Performance']} />
                     <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" />
                     <Bar dataKey="value" maxBarSize={30}>
                       {SECTOR_DATA.map((entry, index) => (
@@ -350,7 +353,7 @@ export default function GlobalEconomy() {
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
                   <thead>
-                    <tr style={{ color: '#64748b', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <tr style={{ color: '#64748b', borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.08)' }}>
                       <th style={{ paddingBottom: 12, fontWeight: 500 }}>Country</th>
                       <th style={{ paddingBottom: 12, fontWeight: 500 }}>GDP Grw</th>
                       <th style={{ paddingBottom: 12, fontWeight: 500 }}>Inflation</th>
@@ -360,8 +363,8 @@ export default function GlobalEconomy() {
                   </thead>
                   <tbody>
                     {ECONOMIC_INDICATORS.map((ind, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
-                        <td style={{ padding: '12px 0', fontWeight: 600, color: '#e2e8f0' }}>{ind.country}</td>
+                      <tr key={i} style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.02)' : '1px solid rgba(0,0,0,0.04)' }}>
+                        <td style={{ padding: '12px 0', fontWeight: 600, color: 'var(--text-primary)' }}>{ind.country}</td>
                         <td style={{ padding: '12px 0', color: ind.gdp.includes('-') ? '#ef4444' : '#10b981' }}>{ind.gdp}</td>
                         <td style={{ padding: '12px 0' }}>{ind.inf}</td>
                         <td style={{ padding: '12px 0', color: '#0ea5e9' }}>{ind.rate}</td>
@@ -382,8 +385,8 @@ export default function GlobalEconomy() {
             }}>
               <div style={{
                 borderRadius: '16px', overflow: 'hidden',
-                border: '1px solid rgba(255,255,255,0.05)',
-                background: 'rgba(0,0,0,0.2)',
+                border: '1px solid var(--glass-border)',
+                background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)',
               }}>
                 {newsLoading
                   ? Array(5).fill(0).map((_, i) => (
@@ -397,8 +400,8 @@ export default function GlobalEconomy() {
               {!isMobile && (
                 <div style={{
                   borderRadius: '16px', overflow: 'hidden',
-                  border: '1px solid rgba(255,255,255,0.05)',
-                  background: 'rgba(0,0,0,0.2)',
+                  border: '1px solid var(--glass-border)',
+                  background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)',
                 }}>
                   {!newsLoading && (news?.articles || []).slice(Math.ceil((news?.articles?.length || 0) / 2)).map((a, i) => (
                     <NewsCard key={a.id || a.link || i} article={a} delay={i * 0.03} />
@@ -411,8 +414,8 @@ export default function GlobalEconomy() {
 
         {/* RIGHT SIDE PANEL */}
         <aside style={{
-          width: 320, borderLeft: '1px solid rgba(255,255,255,0.05)',
-          background: 'rgba(5, 6, 11, 0.6)', padding: '24px',
+          width: 320, borderLeft: '1px solid var(--glass-border)',
+          background: 'var(--bg-card)', padding: '24px',
           display: 'flex', flexDirection: 'column', gap: 32, overflowY: 'auto'
         }}>
           
@@ -424,7 +427,7 @@ export default function GlobalEconomy() {
               <AnimatePresence>
                 {displayedIndexes.map(idx => (
                   <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} key={idx.id} style={{
-                    padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)'
+                    padding: '12px', background: 'var(--bg-card-solid)', borderRadius: '12px', border: '1px solid var(--glass-border)'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                       <div>
@@ -452,11 +455,11 @@ export default function GlobalEconomy() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {commodities.map(c => (
                 <div key={c.id} style={{
-                  padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)'
+                  padding: '12px', background: 'var(--bg-card-solid)', borderRadius: '12px', border: '1px solid var(--glass-border)'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <div style={{ fontSize: 13, fontWeight: 600 }}>{c.id}</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'Rajdhani', color: '#e2e8f0' }}>{c.val.toFixed(2)}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'Rajdhani', color: 'var(--text-primary)' }}>{c.val.toFixed(2)}</div>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontSize: 10, color: '#64748b' }}>{c.unit}</div>
@@ -478,18 +481,18 @@ export default function GlobalEconomy() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {currencies.map(c => (
                 <div key={c.id} style={{
-                  padding: '10px 12px', background: 'rgba(255,255,255,0.02)',
-                  borderRadius: '10px', border: '1px solid rgba(255,255,255,0.04)',
+                  padding: '10px 12px', background: 'var(--bg-card-solid)',
+                  borderRadius: '10px', border: '1px solid var(--glass-border)',
                   display: 'flex', alignItems: 'center', gap: 10,
                   transition: 'background 0.2s'
                 }}>
                   <span style={{ fontSize: 18, lineHeight: 1 }}>{c.flag}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0' }}>{c.id}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{c.id}</div>
                     <div style={{ fontSize: 10, color: '#475569', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'Rajdhani', color: '#e2e8f0' }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'Rajdhani', color: 'var(--text-primary)' }}>
                       {c.val < 10 ? c.val.toFixed(4) : c.val < 100 ? c.val.toFixed(2) : c.val.toFixed(1)}
                     </div>
                     <div style={{ fontSize: 10, fontWeight: 600, color: c.pct > 0 ? '#10b981' : c.pct < 0 ? '#ef4444' : '#64748b' }}>

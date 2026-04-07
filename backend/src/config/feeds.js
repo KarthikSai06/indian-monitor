@@ -138,6 +138,39 @@ const FEEDS = {
     { url: 'https://www.thehindu.com/opinion/editorial/feeder/default.rss', source: 'The Hindu Editorial' },
     { url: 'https://indianexpress.com/section/opinion/feed/', source: 'Indian Express Opinion' },
   ],
+
+  technology: [
+    { url: 'https://feeds.feedburner.com/ndtvgadgets-latest', source: 'NDTV Gadgets' },
+    { url: 'https://indianexpress.com/section/technology/feed/', source: 'Indian Express Tech' },
+    { url: 'https://www.hindustantimes.com/feeds/rss/technology/rssfeed.xml', source: 'HT Tech' },
+    { url: 'https://www.livemint.com/rss/technology', source: 'Livemint Tech' },
+  ],
+
+  defence: [
+    { url: 'https://feeds.feedburner.com/ndtvnews-latest', source: 'NDTV Defence' },
+    { url: 'https://indianexpress.com/section/india/feed/', source: 'Indian Express Defence' },
+    { url: 'https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml', source: 'HT Defence' },
+    { url: 'https://www.thehindu.com/news/national/feeder/default.rss', source: 'The Hindu Defence' },
+    { url: 'https://timesofindia.indiatimes.com/rssfeedstopstories.cms', source: 'TOI Defence' },
+  ],
+
+  crime: [
+    { url: 'https://feeds.feedburner.com/ndtvnews-latest', source: 'NDTV Crime' },
+    { url: 'https://www.thehindu.com/news/national/feeder/default.rss', source: 'The Hindu Law' },
+    { url: 'https://www.hindustantimes.com/feeds/rss/cities/rssfeed.xml', source: 'HT Crime' },
+    { url: 'https://indianexpress.com/section/cities/feed/', source: 'Indian Express Crime' },
+    { url: 'https://timesofindia.indiatimes.com/rssfeedstopstories.cms', source: 'TOI Crime' },
+    { url: 'https://www.news18.com/commonfeeds/v1/eng/rss/india.xml', source: 'News18 Crime' },
+  ],
+
+  education: [
+    { url: 'https://indianexpress.com/section/education/feed/', source: 'Indian Express Education' },
+    { url: 'https://www.hindustantimes.com/feeds/rss/education/rssfeed.xml', source: 'HT Education' },
+    { url: 'https://timesofindia.indiatimes.com/rssfeeds/913168846.cms', source: 'TOI Education' },
+    { url: 'https://www.thehindu.com/education/feeder/default.rss', source: 'The Hindu Education' },
+    { url: 'https://www.news18.com/commonfeeds/v1/eng/rss/education.xml', source: 'News18 Education' },
+    { url: 'https://feeds.feedburner.com/ndtv/education-latest', source: 'NDTV Education' },
+  ],
 };
 
 module.exports = FEEDS;

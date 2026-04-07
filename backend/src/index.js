@@ -8,6 +8,8 @@ const aiRoutes = require('./routes/ai');
 const weatherRoutes = require('./routes/weather');
 const marketsRoutes = require('./routes/markets');
 const cricketRoutes = require('./routes/cricket');
+const crimeRoutes = require('./routes/crime');
+const educationRoutes = require('./routes/education');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -23,6 +25,8 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/markets', marketsRoutes);
 app.use('/api/cricket', cricketRoutes);
+app.use('/api/crime', crimeRoutes);
+app.use('/api/education', educationRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

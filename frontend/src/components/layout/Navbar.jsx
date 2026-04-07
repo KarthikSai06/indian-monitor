@@ -1,17 +1,21 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import useStore from '../../store/useStore';
 
 export default function Navbar() {
   const location = useLocation();
   const { t } = useTranslation();
+  const { theme } = useStore();
+  const isDark = theme === 'dark';
 
   const TABS = [
-    { id: 'home',     path: '/',         label: t('nav.home', 'Home'),     sublabel: 'Dashboard', icon: '🏠' },
-    { id: 'news',     path: '/news',     label: t('nav.news', 'News'),     sublabel: 'Live Feed', icon: '📰' },
-    { id: 'economy',  path: '/economy',  label: 'Global',                  sublabel: 'Economy',   icon: '📈' },
-    { id: 'weather',  path: '/weather',  label: t('nav.weather', 'Weather'), sublabel: 'India',   icon: '⛈️' },
-    { id: 'festivals', path: '/festivals', label: 'Festivals',             sublabel: 'Events',    icon: '🎪' },
+    { id: 'home',      path: '/',          label: t('nav.home', 'Home'),     sublabel: 'Dashboard',    icon: '🏠' },
+    { id: 'news',      path: '/news',      label: t('nav.news', 'News'),     sublabel: 'Live Feed',    icon: '📰' },
+    { id: 'economy',   path: '/economy',   label: 'Global',                  sublabel: 'Economy',      icon: '📈' },
+    { id: 'weather',   path: '/weather',   label: t('nav.weather', 'Weather'), sublabel: 'India',      icon: '⛈️' },
+    { id: 'festivals', path: '/festivals', label: 'Festivals',               sublabel: 'Events',       icon: '🎪' },
+    { id: 'education', path: '/education', label: 'Education',               sublabel: 'Learn & Grow', icon: '🎓' },
   ];
 
   const activeId = TABS.find(t =>
@@ -23,11 +27,11 @@ export default function Navbar() {
   return (
     <nav style={{
       position: 'sticky', top: 54, zIndex: 40,
-      background: 'rgba(6,6,15,0.95)',
+      background: isDark ? 'rgba(6,6,15,0.95)' : 'rgba(255,255,255,0.95)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
       borderBottom: '1px solid rgba(255,102,0,0.1)',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
+      boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.35)' : '0 4px 20px rgba(0,0,0,0.06)',
       overflowX: 'auto',
       overflowY: 'hidden',
       WebkitOverflowScrolling: 'touch',
@@ -81,7 +85,7 @@ export default function Navbar() {
                 <motion.span
                   animate={{ scale: isActive ? 1.15 : 1 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                  style={{ fontSize: 18, lineHeight: 1, marginBottom: 2 }}
+                  style={{ fontSize: 20, lineHeight: 1, marginBottom: 2 }}
                 >
                   {tab.icon}
                 </motion.span>
@@ -90,10 +94,10 @@ export default function Navbar() {
                 <span style={{
                   fontFamily: 'var(--font-ui)',
                   fontWeight: 700,
-                  fontSize: 12,
+                  fontSize: 14,
                   lineHeight: 1.1,
                   letterSpacing: '0.04em',
-                  color: isActive ? '#FF6600' : '#9090b0',
+                  color: isActive ? '#FF6600' : (isDark ? '#9090b0' : '#555570'),
                   transition: 'color 0.15s',
                 }}>
                   {tab.label}
@@ -102,10 +106,10 @@ export default function Navbar() {
                 {/* Sublabel */}
                 <span className="hide-mobile" style={{
                   fontFamily: 'var(--font-ui)',
-                  fontSize: 9,
+                  fontSize: 11,
                   lineHeight: 1,
                   letterSpacing: '0.06em',
-                  color: isActive ? 'rgba(255,102,0,0.55)' : '#565680',
+                  color: isActive ? 'rgba(255,102,0,0.55)' : (isDark ? '#565680' : '#8888a0'),
                 }}>
                   {tab.sublabel}
                 </span>
