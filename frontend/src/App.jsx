@@ -123,7 +123,7 @@ function AnimatedRoutes() {
           <Route path="/news" element={<News />} />
           <Route path="/economy" element={<GlobalEconomy />} />
           <Route path="/weather" element={<Weather />} />
-          {<Route path="/festivals" element={<Festivals />} />}
+          <Route path="/festivals" element={<Festivals />} />
           <Route path="/map" element={<Home />} />
           <Route path="/live" element={<News />} />
           <Route path="/ai" element={<Home />} />

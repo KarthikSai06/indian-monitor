@@ -2,11 +2,19 @@ import axios from 'axios';
 
 const api = axios.create({ baseURL: '/api', timeout: 15000 });
 
-// Inject User API Key into all AI routes
+// Inject User API Key + Provider into all AI routes
 api.interceptors.request.use((config) => {
   if (config.url.startsWith('/ai/')) {
-    const key = localStorage.getItem('gemini_key');
-    if (key) config.headers['X-Gemini-Key'] = key;
+    const key = localStorage.getItem('ai_key') || localStorage.getItem('gemini_key');
+    const provider = localStorage.getItem('ai_provider') || 'gemini';
+    const model = localStorage.getItem('ai_model') || '';
+    if (key) {
+      config.headers['X-AI-Key'] = key;
+      config.headers['X-AI-Provider'] = provider;
+      if (model) config.headers['X-AI-Model'] = model;
+      // Backwards compat for any code still reading X-Gemini-Key
+      config.headers['X-Gemini-Key'] = key;
+    }
   }
   return config;
 });
@@ -42,10 +50,15 @@ export const fetchCrimeNews = ({ category = 'all', page = 1, search = '', state 
   api.get('/crime', { params: { category, page, limit: 30, search, state, priority } }).then(r => r.data);
 
 export const fetchEducationNews = ({ category = 'all', page = 1, search = '', limit = 20 } = {}) => {
-  const geminiKey = localStorage.getItem('gemini_key') || '';
+  const aiKey = localStorage.getItem('ai_key') || localStorage.getItem('gemini_key') || '';
+  const provider = localStorage.getItem('ai_provider') || 'gemini';
+  const model = localStorage.getItem('ai_model') || '';
+  const headers = aiKey
+    ? { 'X-AI-Key': aiKey, 'X-AI-Provider': provider, 'X-AI-Model': model, 'X-Gemini-Key': aiKey }
+    : {};
   return api.get('/education', {
     params: { category, page, limit, search },
-    headers: geminiKey ? { 'X-Gemini-Key': geminiKey } : {},
+    headers,
   }).then(r => r.data);
 };
 

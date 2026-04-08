@@ -168,7 +168,7 @@ const FEEDS = {
     { url: 'https://www.hindustantimes.com/feeds/rss/education/rssfeed.xml', source: 'HT Education' },
     { url: 'https://timesofindia.indiatimes.com/rssfeeds/913168846.cms', source: 'TOI Education' },
     { url: 'https://www.thehindu.com/education/feeder/default.rss', source: 'The Hindu Education' },
-    { url: 'https://www.news18.com/commonfeeds/v1/eng/rss/education.xml', source: 'News18 Education' },
+    { url: 'https://www.news18.com/commonfeeds/v1/eng/rss/education-career.xml', source: 'News18 Education & Career' },
     { url: 'https://feeds.feedburner.com/ndtv/education-latest', source: 'NDTV Education' },
   ],
 };
