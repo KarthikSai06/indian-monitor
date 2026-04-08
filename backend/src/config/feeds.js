@@ -114,6 +114,24 @@ const FEEDS = {
     { url: 'https://timesofindia.indiatimes.com/city/guwahati/rssfeedstopstories.cms', source: 'TOI Guwahati NE' },
   ],
 
+  andaman: [{ url: 'https://news.google.com/rss/search?q=Andaman+and+Nicobar+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News Andaman' }],
+  andhra: [{ url: 'https://news.google.com/rss/search?q=Andhra+Pradesh+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News AP' }, { url: 'https://timesofindia.indiatimes.com/city/amaravati/rssfeedstopstories.cms', source: 'TOI AP' }],
+  arunachal: [{ url: 'https://news.google.com/rss/search?q=Arunachal+Pradesh+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News Arunachal' }],
+  chandigarh: [{ url: 'https://news.google.com/rss/search?q=Chandigarh+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News Chandigarh' }],
+  chhattisgarh: [{ url: 'https://news.google.com/rss/search?q=Chhattisgarh+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News Chhattisgarh' }],
+  dadra: [{ url: 'https://news.google.com/rss/search?q=Dadra+and+Nagar+Haveli+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News Dadra' }],
+  goa: [{ url: 'https://news.google.com/rss/search?q=Goa+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News Goa' }],
+  jammu: [{ url: 'https://news.google.com/rss/search?q=Jammu+and+Kashmir+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News J&K' }],
+  ladakh: [{ url: 'https://news.google.com/rss/search?q=Ladakh+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News Ladakh' }],
+  lakshadweep: [{ url: 'https://news.google.com/rss/search?q=Lakshadweep+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News Lakshadweep' }],
+  manipur: [{ url: 'https://news.google.com/rss/search?q=Manipur+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News Manipur' }],
+  meghalaya: [{ url: 'https://news.google.com/rss/search?q=Meghalaya+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News Meghalaya' }],
+  mizoram: [{ url: 'https://news.google.com/rss/search?q=Mizoram+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News Mizoram' }],
+  nagaland: [{ url: 'https://news.google.com/rss/search?q=Nagaland+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News Nagaland' }],
+  puducherry: [{ url: 'https://news.google.com/rss/search?q=Puducherry+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News Puducherry' }],
+  sikkim: [{ url: 'https://news.google.com/rss/search?q=Sikkim+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News Sikkim' }],
+  tripura: [{ url: 'https://news.google.com/rss/search?q=Tripura+News&hl=en-IN&gl=IN&ceid=IN:en', source: 'Google News Tripura' }],
+
   // ─── Topic feeds ───
   economy: [
     { url: 'https://economictimes.indiatimes.com/rssfeedstopstories.cms', source: 'Economic Times' },

@@ -80,18 +80,24 @@ async function fetchFeed(feedConfig) {
 async function fetchAllFeeds() {
   const allArticles = {};
 
-  for (const [category, feeds] of Object.entries(FEEDS)) {
-    const categoryArticles = [];
-    for (const feed of feeds) {
-      const articles = await fetchFeed({ ...feed, category });
-      categoryArticles.push(...articles);
+  const categoryPromises = Object.entries(FEEDS).map(async ([category, feeds]) => {
+    try {
+      // Fetch all feeds for this category in parallel
+      const feedResults = await Promise.all(feeds.map(feed => fetchFeed({ ...feed, category })));
+      const categoryArticles = feedResults.flat();
+      
+      const deduped = dedup(categoryArticles).sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+      allArticles[category] = deduped;
+      cache.set(`news_${category}`, deduped);
+    } catch (err) {
+      console.error(`[RSS] Error processing category ${category}:`, err.message);
     }
-    const deduped = dedup(categoryArticles).sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-    allArticles[category] = deduped;
-    cache.set(`news_${category}`, deduped);
-  }
+  });
 
-  // All articles combined
+  // Wait for all categories to finish fetching
+  await Promise.all(categoryPromises);
+
+  // Combine and cache all articles globally
   const all = dedup(Object.values(allArticles).flat()).sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
   cache.set('news_all', all);
 

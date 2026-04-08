@@ -12,28 +12,44 @@ const pv = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 
 
 
 
-// ─── All Indian States ──────────────────────────────────────────────────────
+// ─── All Indian States & UTs (Alphabetical) ──────────────────────────────────
 const ALL_STATES = [
-  { key: 'tamilnadu',       label: 'Tamil Nadu' },
-  { key: 'karnataka',       label: 'Karnataka' },
-  { key: 'maharashtra',     label: 'Maharashtra' },
-  { key: 'gujarat',         label: 'Gujarat' },
-  { key: 'rajasthan',       label: 'Rajasthan' },
-  { key: 'uttar-pradesh',   label: 'Uttar Pradesh' },
-  { key: 'madhya-pradesh',  label: 'Madhya Pradesh' },
-  { key: 'west-bengal',     label: 'West Bengal' },
-  { key: 'kerala',          label: 'Kerala' },
-  { key: 'telangana',       label: 'Telangana' },
-  { key: 'punjab',          label: 'Punjab' },
-  { key: 'haryana',         label: 'Haryana' },
-  { key: 'bihar',           label: 'Bihar' },
-  { key: 'odisha',          label: 'Odisha' },
-  { key: 'assam',           label: 'Assam' },
-  { key: 'jharkhand',       label: 'Jharkhand' },
-  { key: 'himachal',        label: 'Himachal Pradesh' },
-  { key: 'uttarakhand',     label: 'Uttarakhand' },
-  { key: 'goa',             label: 'Goa' },
-  { key: 'andhra',          label: 'Andhra Pradesh' },
+  { key: 'andaman', label: 'Andaman and Nicobar' },
+  { key: 'andhra', label: 'Andhra Pradesh' },
+  { key: 'arunachal', label: 'Arunachal Pradesh' },
+  { key: 'assam', label: 'Assam' },
+  { key: 'bihar', label: 'Bihar' },
+  { key: 'chandigarh', label: 'Chandigarh' },
+  { key: 'chhattisgarh', label: 'Chhattisgarh' },
+  { key: 'dadra', label: 'Dadra & Nagar Haveli' },
+  { key: 'delhi', label: 'Delhi' },
+  { key: 'goa', label: 'Goa' },
+  { key: 'gujarat', label: 'Gujarat' },
+  { key: 'haryana', label: 'Haryana' },
+  { key: 'himachal', label: 'Himachal Pradesh' },
+  { key: 'jammu', label: 'Jammu and Kashmir' },
+  { key: 'jharkhand', label: 'Jharkhand' },
+  { key: 'karnataka', label: 'Karnataka' },
+  { key: 'kerala', label: 'Kerala' },
+  { key: 'ladakh', label: 'Ladakh' },
+  { key: 'lakshadweep', label: 'Lakshadweep' },
+  { key: 'madhya-pradesh', label: 'Madhya Pradesh' },
+  { key: 'maharashtra', label: 'Maharashtra' },
+  { key: 'manipur', label: 'Manipur' },
+  { key: 'meghalaya', label: 'Meghalaya' },
+  { key: 'mizoram', label: 'Mizoram' },
+  { key: 'nagaland', label: 'Nagaland' },
+  { key: 'odisha', label: 'Odisha' },
+  { key: 'puducherry', label: 'Puducherry' },
+  { key: 'punjab', label: 'Punjab' },
+  { key: 'rajasthan', label: 'Rajasthan' },
+  { key: 'sikkim', label: 'Sikkim' },
+  { key: 'tamilnadu', label: 'Tamil Nadu' },
+  { key: 'telangana', label: 'Telangana' },
+  { key: 'tripura', label: 'Tripura' },
+  { key: 'uttar-pradesh', label: 'Uttar Pradesh' },
+  { key: 'uttarakhand', label: 'Uttarakhand' },
+  { key: 'west-bengal', label: 'West Bengal' },
 ];
 
 const VISIBLE = 4;
@@ -182,7 +198,7 @@ function StateSelector({ activeState, setActiveState }) {
 
 export default function News() {
   const [subTab, setSubTab] = useState('national');
-  const [activeState, setActiveState] = useState('tamilnadu');
+  const [activeState, setActiveState] = useState('andhra');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const q = useDebounce(search, 350);
