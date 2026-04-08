@@ -12,6 +12,7 @@ import Navbar from './components/layout/Navbar';
 import AboutModal from './components/AboutModal';
 import SettingsModal from './components/SettingsModal';
 import useStore from './store/useStore';
+import { AuthProvider } from './context/AuthContext';
 
 import Home from './pages/Home';
 import News from './pages/News';
@@ -20,6 +21,8 @@ import GlobalEconomy from './pages/GlobalEconomy';
 import Weather from './pages/Weather';
 import Festivals from './pages/Festivals';
 import Education from './pages/Education';
+import AuthPage from './pages/Auth';
+import Profile from './pages/Profile';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } },
@@ -132,6 +135,8 @@ function AnimatedRoutes() {
           <Route path="/entertainment" element={<News />} />
           <Route path="/current-affairs" element={<News />} />
           <Route path="/education" element={<Education />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </AnimatePresence>
@@ -217,7 +222,9 @@ export default function App() {
     return (
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <Onboarding onDone={() => setOnboarded(true)} />
+          <AuthProvider>
+            <Onboarding onDone={() => setOnboarded(true)} />
+          </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>
     );
@@ -226,7 +233,9 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AppShell />
+        <AuthProvider>
+          <AppShell />
+        </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );
