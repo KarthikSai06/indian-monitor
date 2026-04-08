@@ -2,6 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
+const connectDB = require('./config/db');
+const passport = require('./config/passport');
 const { feedRefresh } = require('./services/feedRefresh');
 const newsRoutes = require('./routes/news');
 const aiRoutes = require('./routes/ai');
@@ -10,16 +13,23 @@ const marketsRoutes = require('./routes/markets');
 const cricketRoutes = require('./routes/cricket');
 const crimeRoutes = require('./routes/crime');
 const educationRoutes = require('./routes/education');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173' }));
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  credentials: true, // Required for cookies
+}));
 app.use(morgan('dev'));
 app.use(express.json());
+app.use(cookieParser());
+app.use(passport.initialize());
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/weather', weatherRoutes);
@@ -60,17 +70,24 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error', message: err.message });
 });
 
-app.listen(PORT, async () => {
-  console.log(`\x1b[33m🇮🇳 Bharat Monitor Backend running on port ${PORT}\x1b[0m`);
-  console.log('\x1b[36m[RSS] Starting initial feed refresh...\x1b[0m');
-  await feedRefresh();
+// Connect to MongoDB, then start server
+async function startServer() {
+  await connectDB();
 
-  // Refresh every 20 minutes
-  const cron = require('node-cron');
-  cron.schedule('*/20 * * * *', async () => {
-    console.log('\x1b[36m[RSS] Scheduled refresh triggered\x1b[0m');
+  app.listen(PORT, async () => {
+    console.log(`\x1b[33m🇮🇳 Bharat Monitor Backend running on port ${PORT}\x1b[0m`);
+    console.log('\x1b[36m[RSS] Starting initial feed refresh...\x1b[0m');
     await feedRefresh();
+
+    // Refresh every 20 minutes
+    const cron = require('node-cron');
+    cron.schedule('*/20 * * * *', async () => {
+      console.log('\x1b[36m[RSS] Scheduled refresh triggered\x1b[0m');
+      await feedRefresh();
+    });
   });
-});
+}
+
+startServer();
 
 module.exports = app;
