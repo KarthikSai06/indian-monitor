@@ -30,24 +30,26 @@ async function generateEducationNews(category, apiKey) {
 
 Today's date: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}.
 
-Categories to include: Exams, Results, Jobs, Materials, Career, Scholarships.
+Categories to include: Exams, Results, Jobs, Materials, Career, Scholarships, Learning, College.
 
 Return ONLY a valid JSON array of objects. No markdown, no wrappers, no explanation. Each object must have:
 {
   "title": "news headline (realistic, specific to India)",
   "description": "2-3 sentence description with specific details",
-  "category": "one of: Exams|Results|Jobs|Materials|Career|Scholarships",
+  "category": "one of: Exams|Results|Jobs|Materials|Career|Scholarships|Learning|College",
   "state": "Indian state name or 'India' for national",
-  "source": "realistic source name (e.g., 'KPSC Official', 'UGC', 'NTA', 'UPSC', 'Indian Express Education', 'Employment News')",
+  "source": "realistic source name (e.g., 'KPSC Official', 'UGC', 'NTA', 'UPSC', 'Indian Express Education', 'Employment News', 'NPTEL', 'Coursera India', 'SWAYAM')",
   "priority": "high|medium|low",
   "date": "ISO date string within last 3 days",
-  "link": "https://example.com",
+  "link": "a real, working URL to the official source website related to this news (e.g., https://nta.ac.in, https://upsc.gov.in, https://kpsc.kar.nic.in, https://www.ndtv.com/education, https://indianexpress.com/education/, https://ssc.nic.in, https://ibps.in, https://ugc.gov.in, https://www.shiksha.com, https://timesofindia.indiatimes.com/education, https://www.jagranjosh.com, https://swayam.gov.in, https://nptel.ac.in). Use the actual official website URL of the institution or news source mentioned in the headline.",
   "hasDownload": true or false (true for study materials/PDFs)
 }
 
 Include real exam names: UPSC, KPSC, NEET, JEE Main, CAT, GATE, SSC CGL, IBPS PO, CUET, CLAT, UGC NET, CTET, KAS, SDA, FDA.
 Include real institutions: IIT, IIM, NIT, AIIMS, NTA, UGC, AICTE.
 Include recent notifications about: recruitment drives, result declarations, admit cards, syllabus changes, scholarship deadlines, internship opportunities.
+For "Learning" category: include NPTEL new courses, SWAYAM registrations, Coursera/edX free courses for India, online tutorial launches, coding bootcamps, video lectures, MOOCs.
+For "College" category: include university circulars, fee deposit deadlines, convocation dates, timetable releases, hostel allotment, college reopening, affiliation news, NAAC grading, UGC notices to colleges.
 Make it feel like today's live education news feed in India.`;
 
   try {
@@ -104,8 +106,10 @@ router.get('/', async (req, res) => {
       Results: ['result', 'merit', 'cut-off', 'cutoff', 'topper', 'rank', 'scorecard', 'declared', 'counseling', 'admission', 'seat allot'],
       Jobs: ['job', 'recruit', 'vacancy', 'hiring', 'intern', 'placement', 'sarkari', 'walk-in', 'apply online', 'notification', 'employment'],
       Materials: ['study material', 'notes', 'pdf', 'question paper', 'previous year', 'pyq', 'mock test', 'sample paper', 'textbook', 'download', 'answer key'],
-      Career: ['career', 'guidance', 'skill', 'course', 'certification', 'diploma', 'workshop', 'seminar', 'training', 'mentorship'],
+      Career: ['career', 'guidance', 'skill', 'certification', 'diploma', 'workshop', 'seminar', 'training', 'mentorship'],
       Scholarships: ['scholarship', 'fellowship', 'stipend', 'financial aid', 'grant', 'education loan', 'fee waiver'],
+      Learning: ['course', 'tutorial', 'video lecture', 'online class', 'mooc', 'nptel', 'swayam', 'coursera', 'edx', 'udemy', 'e-learning', 'bootcamp', 'webinar', 'free course', 'coding', 'learn'],
+      College: ['college', 'university', 'circular', 'timetable', 'fee', 'hostel', 'convocation', 'affiliation', 'naac', 'campus', 'reopening', 'academic calendar', 'semester', 'dean', 'registrar', 'autonomous'],
     };
 
     articles = articles.map(a => {
@@ -136,6 +140,7 @@ router.get('/', async (req, res) => {
       total: articles.length,
       Exams: 0, Results: 0, Jobs: 0,
       Materials: 0, Career: 0, Scholarships: 0,
+      Learning: 0, College: 0,
     };
     for (const a of articles) {
       const cat = a.category || 'Exams';
@@ -147,6 +152,7 @@ router.get('/', async (req, res) => {
       const catMap = {
         exams: 'Exams', results: 'Results', jobs: 'Jobs',
         materials: 'Materials', career: 'Career', scholarships: 'Scholarships',
+        learning: 'Learning', college: 'College',
       };
       const target = catMap[category.toLowerCase()] || category;
       articles = articles.filter(a => a.category === target);
