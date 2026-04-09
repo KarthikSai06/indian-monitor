@@ -37,6 +37,15 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    tier: {
+      type: String,
+      enum: ['normal', 'vip'],
+      default: null, // null = not selected yet → triggers plan-select page
+    },
+    tierSetupDone: {
+      type: Boolean,
+      default: false, // becomes true once plan-select is completed
+    },
   },
   {
     timestamps: true, // adds createdAt, updatedAt

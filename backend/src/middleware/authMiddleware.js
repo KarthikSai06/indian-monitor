@@ -89,4 +89,37 @@ module.exports = {
   clearTokenCookie,
   requireAuth,
   optionalAuth,
+  requireVip,
+  requireAdmin,
 };
+
+/**
+ * Middleware: Require VIP tier — must be used AFTER requireAuth
+ */
+function requireVip(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  if (req.user.tier !== 'vip') {
+    return res.status(403).json({
+      error: 'VIP access required',
+      message: 'This feature is only available to VIP members. Upgrade your plan to access AI-powered insights.',
+      tier: req.user.tier,
+    });
+  }
+  next();
+}
+
+/**
+ * Middleware: Require admin — checks for ADMIN_EMAIL env var or a future isAdmin flag
+ */
+function requireAdmin(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map((e) => e.trim().toLowerCase());
+  if (!adminEmails.includes(req.user.email.toLowerCase())) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
+}

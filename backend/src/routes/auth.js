@@ -125,6 +125,35 @@ router.get('/me', requireAuth, (req, res) => {
   res.json({ user: req.user });
 });
 
+// ── POST /api/auth/select-tier ───────────────────────────────────────────────
+// Called from PlanSelect.jsx when user chooses Normal or requests VIP
+router.post('/select-tier', requireAuth, async (req, res) => {
+  const { tier } = req.body;
+  if (!['normal', 'vip'].includes(tier)) {
+    return res.status(400).json({ error: 'Invalid tier. Must be "normal" or "vip"' });
+  }
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        tier,
+        tierSetupDone: true,
+      },
+      { new: true }
+    ).select('-password');
+
+    console.log(`[Auth] User ${user.email} selected tier: ${tier}`);
+    res.json({
+      message: `Plan selected: ${tier}`,
+      user,
+    });
+  } catch (err) {
+    console.error('[Auth] select-tier error:', err.message);
+    res.status(500).json({ error: 'Failed to save tier preference' });
+  }
+});
+
 // ── PUT /api/auth/profile ────────────────────────────────────────────────────
 router.put(
   '/profile',

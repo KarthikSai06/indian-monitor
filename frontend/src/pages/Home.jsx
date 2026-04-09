@@ -5,6 +5,8 @@ import L from 'leaflet';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import useStore from '../store/useStore';
+import AiInsightsSection from '../components/AiInsightsSection';
+import { useAuth } from '../context/AuthContext';
 
 // ─── Custom DivIcon factories ──────────────────────────────────────────────
 const nuclearIcon = L.divIcon({
@@ -178,20 +180,67 @@ export default function Home() {
   const isMobile = useIsMobile();
   const { t } = useTranslation();
   const { theme } = useStore();
+  const { user } = useAuth();
   const isDark = theme === 'dark';
+  const isVip = user?.tier === 'vip';
 
   const toggleLayer = (key) => setLayers(prev => ({ ...prev, [key]: !prev[key] }));
 
-  const { data: dashboard, isLoading: loadingEvents } = useQuery({
+  // ── Normal user: API key powered dashboard (incidents + hashtags + trending) ──
+  const { data: dashboard, isLoading: loadingEvents, isError: isApiError } = useQuery({
     queryKey: ['ai-dashboard'],
+    enabled: !isVip, // Normal users only
     queryFn: async () => {
-      const key = localStorage.getItem('gemini_key') || '';
-      const res = await fetch('/api/ai/dashboard', { headers: { 'X-Gemini-Key': key } });
-      if (res.status === 401) return { incidents: [], events: [], insights: null, hashtags: [] };
+      const key = localStorage.getItem('ai_key') || localStorage.getItem('gemini_key') || '';
+      const provider = localStorage.getItem('ai_provider') || 'gemini';
+      const res = await fetch('/api/ai/dashboard', {
+        headers: { 'X-Gemini-Key': key, 'X-AI-Key': key, 'X-AI-Provider': provider },
+      });
+      if (!res.ok) throw new Error('Invalid API Key or Service Unavailable');
       return res.json();
     },
-    staleTime: 0, retry: 1,
+    staleTime: 0, retry: 0,
   });
+
+  // ── VIP user: Ollama-generated incidents ──────────────────────────────────
+  const { data: vipIncidentData, isLoading: loadingVipIncidents } = useQuery({
+    queryKey: ['vip-incidents'],
+    enabled: isVip, // VIP users only
+    queryFn: () => fetch('/api/vip/incidents', { credentials: 'include' }).then(r => r.json()),
+    staleTime: 15 * 60 * 1000,
+    retry: 1,
+  });
+
+  // ── Resolve which incidents to display ────────────────────────────────────
+  const normalHasKey = !isVip && !!(localStorage.getItem('ai_key') || localStorage.getItem('gemini_key'));
+  const showPrompt = !isVip && (!normalHasKey || isApiError);
+
+  // VIP: Ollama data → static fallback. Normal with key: API data → static fallback. Normal no key: empty.
+  const INCIDENTS = isVip
+    ? (vipIncidentData?.incidents?.length > 0 ? vipIncidentData.incidents : STATIC_INCIDENTS)
+    : (!showPrompt ? (dashboard?.incidents?.length > 0 ? dashboard.incidents : STATIC_INCIDENTS) : []);
+
+  const liveEvents = dashboard?.events || [];
+  const isLive = isVip
+    ? (vipIncidentData?.incidents?.length > 0)
+    : !!(dashboard?.incidents?.length > 0);
+  const loadingIncidents = isVip ? loadingVipIncidents : loadingEvents;
+  // ── VIP: also fetch insights for Live Pulse (topics + hashtags) ──────────────────
+  const { data: vipInsightsData } = useQuery({
+    queryKey: ['vip-insights'],
+    enabled: isVip,
+    queryFn: () => fetch('/api/vip/insights', { credentials: 'include' }).then(r => r.json()),
+    staleTime: 15 * 60 * 1000,
+    retry: 1,
+  });
+
+  // Derive trending topics & hashtags from VIP insights
+  const vipHashtags = isVip
+    ? [...new Set((vipInsightsData?.insights || []).flatMap(ins => ins.hashtags || []))].slice(0, 12)
+    : [];
+  const vipTrending = isVip
+    ? [...new Set((vipInsightsData?.insights || []).flatMap(ins => ins.keyThemes || []))].slice(0, 6)
+    : [];
 
   const { data: cricketData } = useQuery({
     queryKey: ['cricket-live'],
@@ -199,14 +248,10 @@ export default function Home() {
     staleTime: 5 * 60 * 1000, retry: 1,
   });
 
-  const INCIDENTS = dashboard?.incidents?.length > 0 ? dashboard.incidents : STATIC_INCIDENTS;
-  const liveEvents = dashboard?.events || [];
-  const isLive = !!(dashboard?.incidents?.length > 0);
-
   return (
     <motion.div variants={pv} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.2 }}>
 
-      {/* ── Section 1: Map + AI ── */}
+      {/* ── Section 1: Map + Incidents ── */}
       <div className="page" style={{ paddingBottom: 8 }}>
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 320px', gap: 16, alignItems: 'start' }}>
 
@@ -216,9 +261,19 @@ export default function Home() {
               <span className="section-header" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none', letterSpacing: '0.05em', color: 'var(--text-primary)' }}>🗺️ {t('sections.incidentMap', 'India Info Map')}</span>
               {isLive && (
                 <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
-                  style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 8, letterSpacing: '0.1em', padding: '2px 8px', borderRadius: 100, background: 'rgba(255,102,0,0.12)', border: '1px solid rgba(255,102,0,0.25)', color: '#FF9933' }}>
-                  🤖 AI-LIVE
+                  style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 8, letterSpacing: '0.1em', padding: '2px 8px', borderRadius: 100, background: isVip ? 'rgba(255,215,0,0.15)' : 'rgba(255,102,0,0.12)', border: `1px solid ${isVip ? 'rgba(255,215,0,0.3)' : 'rgba(255,102,0,0.25)'}`, color: isVip ? '#FFD700' : '#FF9933' }}>
+                  {isVip ? '⭐ VIP·OLLAMA' : '🤖 AI-LIVE'}
                 </motion.span>
+              )}
+              {showPrompt && (
+                <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 8, letterSpacing: '0.1em', padding: '2px 8px', borderRadius: 100, background: isApiError ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.06)', border: `1px solid ${isApiError ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.12)'}`, color: isApiError ? '#ef4444' : 'var(--text-muted)' }}>
+                  {isApiError ? '⚠️ API ERROR' : '🔑 API KEY REQUIRED'}
+                </span>
+              )}
+              {isVip && vipIncidentData?.generatedAt && (
+                <span style={{ fontFamily: 'var(--font-ui)', fontSize: 10, color: 'var(--text-muted)' }}>
+                  🔄 {new Date(vipIncidentData.generatedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                </span>
               )}
               <span style={{ marginLeft: 'auto', fontSize: 12, fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
                 {INCIDENTS.filter(i => i.type === 'alert').length} {t('common.alerts','alerts')} · {INCIDENTS.filter(i => i.type === 'warn').length} {t('common.warnings','warnings')}
@@ -340,7 +395,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Incident Alert Cards */}
+          {/* Incident Alert Cards / API Key Prompt */}
           <div style={{
             position: isMobile ? 'relative' : 'sticky', top: isMobile ? 'auto' : 130,
             height: 'fit-content', maxHeight: isMobile ? 'none' : 520,
@@ -350,25 +405,65 @@ export default function Home() {
             scrollbarWidth: 'thin',
             scrollbarColor: 'rgba(255,102,0,0.3) transparent',
           }}>
-            {INCIDENTS.map((inc, i) => (
-              <motion.div key={inc.id}
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                className={`alert-card alert-card-${inc.type}`}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <div className={`alert-icon-pill alert-icon-pill-${inc.type}`}>{TYPE_ICON[inc.type]}</div>
-                  <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: TYPE[inc.type] }}>
-                    {inc.type === 'alert' ? t('common.alert','ALERT') : inc.type === 'warn' ? t('common.warning','WARNING') : t('common.safe','SAFE')}
-                  </span>
-                </div>
-                <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', marginBottom: 4 }}>{inc.name}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{inc.desc}</div>
+            {/* Normal user with no API key OR API Error → show prompt */}
+            {showPrompt ? (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                style={{
+                  borderRadius: 16, padding: '24px 20px', textAlign: 'center',
+                  background: isApiError ? 'radial-gradient(ellipse at top, rgba(239,68,68,0.08), transparent)' : 'linear-gradient(135deg, rgba(255,102,0,0.08), rgba(255,102,0,0.03))',
+                  border: `1px dashed ${isApiError ? 'rgba(239,68,68,0.3)' : 'rgba(255,102,0,0.25)'}`,
+                }}
+              >
+                <div style={{ fontSize: 36, marginBottom: 12 }}>{isApiError ? '⚠️' : '🗺️'}</div>
+                <p style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 15, color: 'var(--text-primary)', margin: '0 0 8px' }}>
+                  {isApiError ? 'Connection Issue' : 'Live Incident Map'}
+                </p>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-muted)', margin: '0 0 16px', lineHeight: 1.6 }}>
+                  {isApiError 
+                    ? 'The API key provided seems invalid or hit a rate limit. Please check your AI Provider settings and update the key.' 
+                    : 'Add your Gemini, Groq, or OpenRouter API key to enable AI-generated real-time incident data on the map.'}
+                </p>
+                <motion.button
+                  whileHover={{ scale: 1.04, boxShadow: '0 4px 20px rgba(255,102,0,0.3)' }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => document.querySelector('[title="API Settings"]')?.click()}
+                  style={{
+                    padding: '9px 18px', borderRadius: 10, border: 'none',
+                    background: 'linear-gradient(135deg, #FF6600, #cc4400)',
+                    color: '#fff', fontFamily: 'var(--font-ui)', fontWeight: 700,
+                    fontSize: 13, cursor: 'pointer', width: '100%',
+                    boxShadow: '0 2px 12px rgba(255,102,0,0.25)',
+                  }}
+                >
+                  ⚙️ Update API Key
+                </motion.button>
+                <p style={{ fontFamily: 'var(--font-ui)', fontSize: 11, color: 'var(--text-muted)', margin: '12px 0 0' }}>
+                  Or upgrade to <strong style={{ color: '#FFD700' }}>⭐ VIP</strong> for automatic Ollama-powered incidents
+                </p>
               </motion.div>
-            ))}
+            ) : (
+              INCIDENTS.map((inc, i) => (
+                <motion.div key={inc.id}
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                  className={`alert-card alert-card-${inc.type}`}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <div className={`alert-icon-pill alert-icon-pill-${inc.type}`}>{TYPE_ICON[inc.type]}</div>
+                    <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: TYPE[inc.type] }}>
+                      {inc.type === 'alert' ? t('common.alert','ALERT') : inc.type === 'warn' ? t('common.warning','WARNING') : t('common.safe','SAFE')}
+                    </span>
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', marginBottom: 4 }}>{inc.name}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{inc.desc}</div>
+                </motion.div>
+              ))
+            )}
           </div>
         </div>
       </div>
 
-
+      {/* ── AI Insights Section ── */}
+      <AiInsightsSection />
 
       {/* ── Section 3: Live Pulse — Trending Topics | Hashtags | Cricket ── */}
       <div className="page" style={{ paddingTop: 0, paddingBottom: 20 }}>
@@ -388,9 +483,9 @@ export default function Home() {
               <span style={{ fontSize: 18 }}>🔥</span>
               <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 14, color: '#FF9933', letterSpacing: '0.07em' }}>TRENDING TOPICS</span>
             </div>
-            {dashboard?.insights?.trending?.length > 0 ? (
+            {(isVip ? vipTrending.length > 0 : dashboard?.insights?.trending?.length > 0) ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-                {dashboard.insights.trending.slice(0, 6).map((topic, i) => (
+                {(isVip ? vipTrending : dashboard.insights.trending).slice(0, 6).map((topic, i) => (
                   <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
                     style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                     <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 12, color: i < 3 ? '#FF6600' : 'var(--text-muted)', minWidth: 20 }}>#{i + 1}</span>
@@ -410,7 +505,7 @@ export default function Home() {
                   </div>
                 ))}
                 <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
-                  {loadingEvents ? '⏳ Loading topics…' : '⚙️ Add Gemini key to enable AI topics'}
+                  {(isVip ? !vipInsightsData : loadingEvents) ? '⏳ Loading topics…' : isVip ? '⏳ Ollama is generating…' : '⚙️ Add API key to enable AI topics'}
                 </div>
               </div>
             )}
@@ -422,9 +517,9 @@ export default function Home() {
               <span style={{ fontSize: 18 }}>📣</span>
               <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 14, color: '#38bdf8', letterSpacing: '0.07em' }}>TRENDING HASHTAGS</span>
             </div>
-            {dashboard?.hashtags?.length > 0 ? (
+            {(isVip ? vipHashtags.length > 0 : dashboard?.hashtags?.length > 0) ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-                {dashboard.hashtags.slice(0, 12).map((tag, i) => (
+                {(isVip ? vipHashtags : dashboard.hashtags).slice(0, 12).map((tag, i) => (
                   <motion.span key={i}
                     initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}
                     whileHover={{ scale: 1.08, y: -2 }}
@@ -453,7 +548,7 @@ export default function Home() {
                   ))}
                 </div>
                 <div style={{ fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--text-muted)', marginTop: 12 }}>
-                  {loadingEvents ? '⏳ Loading hashtags…' : '⚙️ Add Gemini key to enable AI hashtags'}
+                  {(isVip ? !vipInsightsData : loadingEvents) ? '⏳ Loading hashtags…' : isVip ? '⏳ Ollama is generating…' : '⚙️ Add API key to enable AI hashtags'}
                 </div>
               </>
             )}
