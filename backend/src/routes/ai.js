@@ -109,8 +109,8 @@ router.post('/translate-batch', async (req, res) => {
 
 // POST /api/ai/chat (streaming)
 router.post('/chat', async (req, res) => {
-  const apiKey = req.headers['x-gemini-key'];
-  if (!apiKey) return res.status(401).json({ error: 'Missing Gemini Key in Settings.' });
+  // Use header key if provided, else fall back to server env key via resolveKey()
+  const apiKey = req.headers['x-gemini-key'] || null;
 
   try {
     const { messages } = req.body;
@@ -152,8 +152,8 @@ router.post('/chat', async (req, res) => {
 
 // POST /api/ai/translate
 router.post('/translate', async (req, res) => {
-  const apiKey = req.headers['x-gemini-key'];
-  if (!apiKey) return res.status(401).json({ error: 'Missing API Key.' });
+  // Use header key if provided, else fall back to server env key via resolveKey()
+  const apiKey = req.headers['x-gemini-key'] || null;
 
   try {
     const { text, targetLang } = req.body;
@@ -166,8 +166,8 @@ router.post('/translate', async (req, res) => {
 
 // POST /api/ai/weather-summary
 router.post('/weather-summary', async (req, res) => {
-  const apiKey = req.headers['x-gemini-key'];
-  if (!apiKey) return res.status(401).json({ error: 'Missing API Key.' });
+  // Use header key if provided, else fall back to server env key via resolveKey()
+  const apiKey = req.headers['x-gemini-key'] || null;
 
   try {
     const { city, weatherData } = req.body;

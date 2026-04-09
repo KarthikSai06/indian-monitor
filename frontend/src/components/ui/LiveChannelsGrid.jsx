@@ -177,7 +177,7 @@ export default function LiveChannelsGrid({ channels }) {
                 onChange={e => setNationalSearch(e.target.value)}
                 style={{
                   flexShrink: 0, width: '150px', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,102,0,0.2)',
-                  background: 'var(--bg-card2)', color: 'white', outline: 'none', fontSize: '12px',
+                  background: 'var(--bg-card-solid)', color: 'var(--text-primary)', outline: 'none', fontSize: '12px',
                   fontFamily: 'var(--font-ui)', boxSizing: 'border-box'
                 }}
               />
@@ -249,13 +249,13 @@ export default function LiveChannelsGrid({ channels }) {
               onChange={e => setSelectedState(e.target.value)}
               style={{
                 flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,102,0,0.2)',
-                background: 'var(--bg-card2)', color: 'white', outline: 'none', fontSize: '12px',
+                background: 'var(--bg-card-solid)', color: 'var(--text-primary)', outline: 'none', fontSize: '12px',
                 fontFamily: 'var(--font-ui)', cursor: 'pointer', appearance: 'menulist'
               }}
             >
-              <option value="" disabled>Select State</option>
+              <option value="" disabled style={{ color: 'var(--text-primary)', background: 'var(--bg-card-solid)' }}>Select State</option>
               {states.map(s => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s} style={{ color: 'var(--text-primary)', background: 'var(--bg-card-solid)' }}>{s}</option>
               ))}
             </select>
 
@@ -266,7 +266,7 @@ export default function LiveChannelsGrid({ channels }) {
               onChange={e => setStateSearch(e.target.value)}
               style={{
                 flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,102,0,0.2)',
-                background: 'var(--bg-card2)', color: 'white', outline: 'none', fontSize: '12px',
+                background: 'var(--bg-card-solid)', color: 'var(--text-primary)', outline: 'none', fontSize: '12px',
                 fontFamily: 'var(--font-ui)', minWidth: 0
               }}
             />

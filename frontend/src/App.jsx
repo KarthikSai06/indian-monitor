@@ -12,6 +12,7 @@ import Navbar from './components/layout/Navbar';
 import AboutModal from './components/AboutModal';
 import SettingsModal from './components/SettingsModal';
 import useStore from './store/useStore';
+import { AuthProvider } from './context/AuthContext';
 
 import Home from './pages/Home';
 import News from './pages/News';
@@ -20,12 +21,15 @@ import GlobalEconomy from './pages/GlobalEconomy';
 import Weather from './pages/Weather';
 import Festivals from './pages/Festivals';
 import Education from './pages/Education';
+import Profile from './pages/Profile';
+import PlanSelect from './pages/PlanSelect';
+import LandingPage from './pages/LandingPage';
+import { useAuth } from './context/AuthContext';
+import ScreenLoader from './components/ScreenLoader';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } },
 });
-
-import ScreenLoader from './components/ScreenLoader';
 
 // ── Ashoka Chakra transition overlay ──────────────────────────────────────
 function PageTransitionOverlay({ visible }) {
@@ -123,7 +127,7 @@ function AnimatedRoutes() {
           <Route path="/news" element={<News />} />
           <Route path="/economy" element={<GlobalEconomy />} />
           <Route path="/weather" element={<Weather />} />
-          {/* <Route path="/festivals"     element={<Festivals />} /> */}
+          <Route path="/festivals" element={<Festivals />} />
           <Route path="/map" element={<Home />} />
           <Route path="/live" element={<News />} />
           <Route path="/ai" element={<Home />} />
@@ -132,6 +136,7 @@ function AnimatedRoutes() {
           <Route path="/entertainment" element={<News />} />
           <Route path="/current-affairs" element={<News />} />
           <Route path="/education" element={<Education />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </AnimatePresence>
@@ -139,11 +144,41 @@ function AnimatedRoutes() {
   );
 }
 
+// ── Auth gatekeeper: shows LandingPage to logged-out users ────────────────────
+function GateKeeper() {
+  const { user, loading } = useAuth();
+
+  // While checking session, show a minimal spinner
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#07070f' }}>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          style={{ width: 36, height: 36, borderRadius: '50%', border: '3px solid rgba(255,102,0,0.2)', borderTopColor: '#FF6600' }}
+        />
+      </div>
+    );
+  }
+
+  // Not logged in → show landing page
+  if (!user) return <LandingPage />;
+
+  // Logged in → show full app shell
+  return <AppShell />;
+}
+
 function AppShell() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { theme } = useStore();
+  const { user } = useAuth();
   const isDark = theme === 'dark';
+
+  // New users who haven't chosen a plan yet: show PlanSelect fullscreen (no nav chrome)
+  if (user && !user.tierSetupDone) {
+    return <PlanSelect />;
+  }
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-dark)' }}>
@@ -217,7 +252,9 @@ export default function App() {
     return (
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <Onboarding onDone={() => setOnboarded(true)} />
+          <AuthProvider>
+            <Onboarding onDone={() => setOnboarded(true)} />
+          </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>
     );
@@ -226,7 +263,9 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AppShell />
+        <AuthProvider>
+          <GateKeeper />
+        </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );
