@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 const passport = require('./config/passport');
 const { feedRefresh } = require('./services/feedRefresh');
+const { runOllamaWorker } = require('./services/ollamaWorker');
 const newsRoutes = require('./routes/news');
 const aiRoutes = require('./routes/ai');
 const weatherRoutes = require('./routes/weather');
@@ -14,6 +15,7 @@ const cricketRoutes = require('./routes/cricket');
 const crimeRoutes = require('./routes/crime');
 const educationRoutes = require('./routes/education');
 const authRoutes = require('./routes/auth');
+const vipRoutes = require('./routes/vip');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -30,6 +32,7 @@ app.use(passport.initialize());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/vip', vipRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/weather', weatherRoutes);
@@ -79,11 +82,20 @@ async function startServer() {
     console.log('\x1b[36m[RSS] Starting initial feed refresh...\x1b[0m');
     await feedRefresh();
 
+    // Start Ollama VIP worker after first feed refresh
+    await runOllamaWorker();
+
     // Refresh every 20 minutes
     const cron = require('node-cron');
     cron.schedule('*/20 * * * *', async () => {
       console.log('\x1b[36m[RSS] Scheduled refresh triggered\x1b[0m');
       await feedRefresh();
+    });
+
+    // Run Ollama VIP worker every 30 minutes
+    cron.schedule('*/30 * * * *', async () => {
+      console.log('\x1b[35m[Ollama] Scheduled VIP insight generation triggered\x1b[0m');
+      await runOllamaWorker();
     });
   });
 }
@@ -91,3 +103,5 @@ async function startServer() {
 startServer();
 
 module.exports = app;
+
+

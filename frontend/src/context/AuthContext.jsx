@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext(null);
 
@@ -8,6 +9,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   // Check if user is authenticated on mount
   const checkAuth = useCallback(async () => {
@@ -38,9 +40,13 @@ export function AuthProvider({ children }) {
     if (params.get('auth') === 'success') {
       // Clean URL
       window.history.replaceState({}, '', window.location.pathname);
-      checkAuth();
+      checkAuth().then(() => {
+        // after refresh, redirect to plan-select if tier is null
+      });
     }
   }, [checkAuth]);
+
+  // Plan selection is handled by AppShell rendering PlanSelect when tierSetupDone is false
 
   const signup = async (name, email, password) => {
     setError(null);
@@ -90,6 +96,25 @@ export function AuthProvider({ children }) {
       // ignore
     }
     setUser(null);
+  };
+
+  const selectTier = async (tier) => {
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/select-tier`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ tier }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to set plan');
+      setUser(data.user);
+      return data;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
   };
 
   const updateProfile = async (updates) => {
@@ -146,6 +171,7 @@ export function AuthProvider({ children }) {
         signup,
         login,
         logout,
+        selectTier,
         updateProfile,
         changePassword,
         loginWithGoogle,
@@ -165,3 +191,4 @@ export function useAuth() {
 }
 
 export default AuthContext;
+

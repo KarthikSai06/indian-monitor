@@ -32,7 +32,8 @@ const connectDB = async () => {
     return conn;
   } catch (err) {
     console.error('\x1b[31m[DB] MongoDB connection failed:', err.message, '\x1b[0m');
-    process.exit(1);
+    console.warn('\x1b[33m[DB] Continuing without Database Connection. Auth features may fail.\x1b[0m');
+    // process.exit(1);
   }
 };
 

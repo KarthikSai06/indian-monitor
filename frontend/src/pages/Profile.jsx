@@ -127,7 +127,9 @@ export default function Profile() {
       fontSize: 26,
       color: '#fff',
       background: 'linear-gradient(135deg, #FF6600, #cc4400)',
-      boxShadow: '0 4px 20px rgba(255,102,0,0.3)',
+      boxShadow: user?.tier === 'vip'
+        ? '0 0 0 3px #FFD700, 0 4px 24px rgba(255,215,0,0.4)'
+        : '0 4px 20px rgba(255,102,0,0.3)',
       flexShrink: 0,
       overflow: 'hidden',
     },
@@ -309,6 +311,34 @@ export default function Profile() {
                       </button>
                     </h2>
                     <p style={s.userEmail}>{user.email}</p>
+                    {/* VIP / Normal badge */}
+                    {user.tier === 'vip' ? (
+                      <motion.span
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 5,
+                          marginTop: 6, padding: '3px 10px', borderRadius: 999,
+                          background: 'linear-gradient(135deg, #FFD700, #FFA500)',
+                          color: '#1a0a00', fontSize: 12, fontWeight: 800,
+                          fontFamily: 'var(--font-ui)', letterSpacing: '0.06em',
+                          boxShadow: '0 2px 12px rgba(255,215,0,0.35)',
+                        }}
+                      >
+                        ⭐ VIP MEMBER
+                      </motion.span>
+                    ) : (
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 5,
+                        marginTop: 6, padding: '3px 10px', borderRadius: 999,
+                        background: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)',
+                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                        color: 'var(--text-muted)', fontSize: 12, fontWeight: 600,
+                        fontFamily: 'var(--font-ui)',
+                      }}>
+                        👤 Normal Member
+                      </span>
+                    )}
                   </>
                 )}
               </div>
@@ -336,6 +366,71 @@ export default function Profile() {
                 <span style={s.infoLabel}>Last Login</span>
                 <span style={s.infoValue}>{new Date(user.lastLogin).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
               </div>
+            </div>
+
+            {/* Membership Section */}
+            <div style={s.section}>
+              <div style={s.sectionTitle}>
+                <span style={{ fontSize: 14 }}>👑</span>
+                Membership
+              </div>
+              {user.tier === 'vip' ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{
+                    borderRadius: 14,
+                    padding: '1rem 1.2rem',
+                    background: 'linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,165,0,0.06))',
+                    border: '1px solid rgba(255,215,0,0.25)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 15, color: '#FFD700' }}>⭐ VIP Plan</span>
+                    <span style={{ fontSize: 11, fontFamily: 'var(--font-ui)', fontWeight: 700, color: '#FFA500',
+                      background: 'rgba(255,165,0,0.12)', padding: '2px 8px', borderRadius: 999 }}>ACTIVE</span>
+                  </div>
+                  {[
+                    '🤖 AI-powered insights generated every 30 mins',
+                    '📊 Sentiment analysis across 8 news categories',
+                    '🏷️ Auto-generated trending hashtags',
+                    '🔑 No API key needed',
+                  ].map((benefit, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.65)' }}>{benefit}</span>
+                    </div>
+                  ))}
+                </motion.div>
+              ) : (
+                <div style={{
+                  borderRadius: 14,
+                  padding: '1rem 1.2rem',
+                  background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                  border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)'}`,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>👤 Normal Plan</span>
+                    <span style={{ fontSize: 11, fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--text-muted)',
+                      background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', padding: '2px 8px', borderRadius: 999 }}>FREE</span>
+                  </div>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-muted)', margin: '0 0 10px 0', lineHeight: 1.5 }}>
+                    You are on the free plan. Bring your own AI API key to enable insights, or request VIP access for automatic AI-powered updates.
+                  </p>
+                  <motion.button
+                    whileHover={{ scale: 1.02, boxShadow: '0 4px 20px rgba(255,215,0,0.25)' }}
+                    whileTap={{ scale: 0.97 }}
+                    style={{
+                      padding: '0.5rem 1.2rem', borderRadius: 10, border: '1px solid rgba(255,215,0,0.3)',
+                      background: 'linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,165,0,0.08))',
+                      color: '#FFD700', fontFamily: 'var(--font-ui)', fontWeight: 700,
+                      fontSize: 13, cursor: 'pointer',
+                    }}
+                    onClick={() => window.open('mailto:admin@bharatmonitor.in?subject=VIP Access Request', '_blank')}
+                  >
+                    ⭐ Request VIP Access
+                  </motion.button>
+                </div>
+              )}
             </div>
 
             {/* Change Password (only for local users) */}
