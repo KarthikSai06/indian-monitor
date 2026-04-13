@@ -2,8 +2,19 @@
 
 > **India's Live Intelligence Hub** — A real-time, AI-powered intelligence platform delivering comprehensive national news, live market data, interactive incident mapping, and weather forecasts across 10 Indian languages.
 
-![Bharat Monitor Preview](./frontend/public/favicon-32x32.png) <!-- Replace with actual screenshot path -->
+![Bharat Monitor Preview](./docs/screenshots/Screenshot%20(306).png)
 
+## 📸 Screenshots
+
+<details>
+<summary>Click to view more screenshots</summary>
+
+<img src="./docs/screenshots/Screenshot%20(306).png" width="800" />
+<img src="./docs/screenshots/Screenshot%20(307).png" width="800" />
+<img src="./docs/screenshots/Screenshot%20(308).png" width="800" />
+<img src="./docs/screenshots/Screenshot%20(309).png" width="800" />
+
+</details>
 ## 🌟 Overview
 
 Bharat Monitor is designed to be the ultimate daily dashboard for every Indian. By aggregating live RSS feeds from top national publishers, real-time market indices, and current weather data, the platform provides a unified view of what's happening across the country. 
