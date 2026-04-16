@@ -112,6 +112,8 @@ const CHANNELS = [
 /**
  * Fetch the current live video ID for a YouTube channel handle.
  * Falls back gracefully if the channel isn't live or can't be reached.
+ * On production (Render), YouTube scraping is often blocked — in that case we
+ * return a "channel live page" embed so the player still shows something.
  */
 async function fetchLiveVideoId(handle) {
   const cacheKey = `yt_live_${handle}`;
@@ -164,6 +166,21 @@ async function fetchLiveVideoId(handle) {
 }
 
 /**
+ * Builds the embed URL for a channel.
+ * If we got a videoId from scraping, use it directly.
+ * If scraping failed (blocked by YouTube on cloud IPs), fall back to the
+ * channel's /live page embed — YouTube allows this and it still shows a player.
+ */
+function buildEmbedUrl(handle, videoId) {
+  if (videoId) {
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0&modestbranding=1`;
+  }
+  // Fallback: embed the channel's live page — works even on Render/cloud IPs
+  // YouTube will show the live stream or latest video in the embed
+  return `https://www.youtube.com/embed/live_stream?channel=${handle}&autoplay=1&mute=1`;
+}
+
+/**
  * Fetch all channels' live video IDs concurrently.
  * Returns an array of channel objects with their current videoId.
  */
@@ -181,9 +198,7 @@ async function fetchAllLiveStreams() {
         ...ch,
         videoId: live?.videoId || null,
         isLive: live?.isLive || false,
-        embedUrl: live?.videoId
-          ? `https://www.youtube.com/embed/${live.videoId}?autoplay=1&mute=1&rel=0&modestbranding=1`
-          : null,
+        embedUrl: buildEmbedUrl(ch.handle, live?.videoId || null),
         ytLink: `https://www.youtube.com/@${ch.handle}/live`,
       };
     })

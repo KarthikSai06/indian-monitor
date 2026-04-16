@@ -41,11 +41,22 @@ function clearTokenCookie(res) {
 }
 
 /**
+ * Extract token from cookie or Authorization: Bearer header.
+ * Supports both same-domain (cookie) and cross-domain (header) auth.
+ */
+function extractToken(req) {
+  if (req.cookies?.bm_token) return req.cookies.bm_token;
+  const authHeader = req.headers?.authorization;
+  if (authHeader?.startsWith('Bearer ')) return authHeader.slice(7);
+  return null;
+}
+
+/**
  * Middleware: Require authentication — blocks request if not authenticated
  */
 async function requireAuth(req, res, next) {
   try {
-    const token = req.cookies?.bm_token;
+    const token = extractToken(req);
     if (!token) {
       return res.status(401).json({ error: 'Authentication required' });
     }
@@ -71,7 +82,7 @@ async function requireAuth(req, res, next) {
  */
 async function optionalAuth(req, res, next) {
   try {
-    const token = req.cookies?.bm_token;
+    const token = extractToken(req);
     if (token) {
       const decoded = jwt.verify(token, JWT_SECRET);
       const user = await User.findById(decoded.id).select('-password');

@@ -5,6 +5,19 @@ const AuthContext = createContext(null);
 
 const API_BASE = '/api/auth';
 
+// Helper: get stored auth token (set after cross-domain OAuth redirect)
+function getStoredToken() {
+  return localStorage.getItem('bm_token') || null;
+}
+
+// Helper: build fetch options with auth header if token exists
+function authFetch(url, options = {}) {
+  const token = getStoredToken();
+  const headers = { ...options.headers };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return fetch(url, { credentials: 'include', ...options, headers });
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,14 +27,13 @@ export function AuthProvider({ children }) {
   // Check if user is authenticated on mount
   const checkAuth = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/me`, {
-        credentials: 'include',
-      });
+      const res = await authFetch(`${API_BASE}/me`);
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
       } else {
         setUser(null);
+        localStorage.removeItem('bm_token');
       }
     } catch {
       setUser(null);
@@ -34,15 +46,18 @@ export function AuthProvider({ children }) {
     checkAuth();
   }, [checkAuth]);
 
-  // Check for OAuth success redirect
+  // Check for OAuth success redirect — read token from URL and store it
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('auth') === 'success') {
-      // Clean URL
+      // If backend sent the token in the URL (cross-domain OAuth fix), store it
+      const urlToken = params.get('token');
+      if (urlToken) {
+        localStorage.setItem('bm_token', urlToken);
+      }
+      // Clean URL (remove ?auth=success&token=...)
       window.history.replaceState({}, '', window.location.pathname);
-      checkAuth().then(() => {
-        // after refresh, redirect to plan-select if tier is null
-      });
+      checkAuth();
     }
   }, [checkAuth]);
 
@@ -51,14 +66,15 @@ export function AuthProvider({ children }) {
   const signup = async (name, email, password) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/signup`, {
+      const res = await authFetch(`${API_BASE}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ name, email, password }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Signup failed');
+      // Store token if returned (for cross-domain auth)
+      if (data.token) localStorage.setItem('bm_token', data.token);
       setUser(data.user);
       return data;
     } catch (err) {
@@ -70,14 +86,15 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/login`, {
+      const res = await authFetch(`${API_BASE}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed');
+      // Store token if returned (for cross-domain auth)
+      if (data.token) localStorage.setItem('bm_token', data.token);
       setUser(data.user);
       return data;
     } catch (err) {
@@ -88,13 +105,11 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      await fetch(`${API_BASE}/logout`, {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await authFetch(`${API_BASE}/logout`, { method: 'POST' });
     } catch {
       // ignore
     }
+    localStorage.removeItem('bm_token');
     setUser(null);
   };
 
@@ -156,8 +171,10 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = () => {
     // Navigate directly to backend server — OAuth redirects don't work through Vite proxy
-    const backendURL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`;
+    const isProd = import.meta.env.PROD;
+    const defaultBackend = isProd ? 'https://indian-monitor.onrender.com' : 'http://localhost:3001';
+    const backendURL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || defaultBackend;
+    window.location.href = `${backendURL}/api/auth/google`;
   };
 
   const clearError = () => setError(null);
