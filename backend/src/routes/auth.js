@@ -72,6 +72,7 @@ router.post(
 
       res.status(201).json({
         message: 'Account created successfully',
+        token,
         user: user.toJSON(),
       });
     } catch (err) {
@@ -108,6 +109,7 @@ router.post(
 
       res.json({
         message: 'Logged in successfully',
+        token,
         user: user.toJSON(),
       });
     })(req, res, next);
@@ -251,9 +253,13 @@ router.get(
       }
 
       const token = generateToken(user);
+      // Also set cookie (works for same-domain / local dev)
       setTokenCookie(res, token);
       console.log(`\x1b[32m[Auth] Google login: ${user.email}\x1b[0m`);
-      res.redirect(`${frontendURL}/?auth=success`);
+
+      // Pass token as URL param so the frontend can store it regardless of
+      // cross-domain cookie restrictions (Vercel frontend ≠ Render backend)
+      res.redirect(`${frontendURL}/?auth=success&token=${token}`);
     })(req, res, next);
   }
 );
