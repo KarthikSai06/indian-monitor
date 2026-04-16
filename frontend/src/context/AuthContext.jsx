@@ -157,7 +157,7 @@ export function AuthProvider({ children }) {
   const loginWithGoogle = () => {
     // Navigate directly to backend server — OAuth redirects don't work through Vite proxy
     const backendURL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-    window.location.href = `${backendURL}/api/auth/google`;
+    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`;
   };
 
   const clearError = () => setError(null);

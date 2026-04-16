@@ -24,13 +24,17 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          framer: ['framer-motion'],
-          charts: ['recharts'],
-          query: ['@tanstack/react-query'],
-          i18n: ['i18next', 'react-i18next'],
-        },
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react/') || id.includes('react-dom') || id.includes('react-router-dom')) {
+              return 'vendor';
+            }
+            if (id.includes('framer-motion')) return 'framer';
+            if (id.includes('recharts')) return 'charts';
+            if (id.includes('@tanstack/react-query')) return 'query';
+            if (id.includes('i18next') || id.includes('react-i18next')) return 'i18n';
+          }
+        }
       },
     },
   },
