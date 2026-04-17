@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useStore from '../../store/useStore';
 
@@ -27,15 +27,17 @@ const LANGUAGES = [
 // ─────────────────────────────────────────────────────────────────────────────
 function setGoogleTranslateCookie(langCode) {
   const value = langCode === 'en' ? '/en/en' : `/en/${langCode}`;
-  // Write cookie on all paths / subdomains
   document.cookie = `googtrans=${value}; path=/`;
   document.cookie = `googtrans=${value}; path=/; domain=${window.location.hostname}`;
 }
 
+// Guard: prevent concurrent/duplicate translate triggers
+let _translateBusy = false;
+
 function triggerGoogleTranslate(langCode) {
+  if (_translateBusy) return;
   setGoogleTranslateCookie(langCode);
 
-  // Method 1: use the hidden <select> that Google Translate renders
   const trySelect = () => {
     const combo = document.querySelector('.goog-te-combo');
     if (combo) {
@@ -47,10 +49,13 @@ function triggerGoogleTranslate(langCode) {
   };
 
   if (!trySelect()) {
-    // Widget not ready yet — retry up to 20× (2 s)
+    _translateBusy = true;
     let tries = 0;
     const iv = setInterval(() => {
-      if (trySelect() || ++tries >= 20) clearInterval(iv);
+      if (trySelect() || ++tries >= 20) {
+        clearInterval(iv);
+        _translateBusy = false;
+      }
     }, 100);
   }
 }
@@ -68,20 +73,32 @@ export default function LanguageSwitcher() {
   // ── Restore saved language on first mount ──────────────────────────────────
   useEffect(() => {
     if (language && language !== 'en') {
-      // Allow time for the GT widget to load then apply
       const t = setTimeout(() => triggerGoogleTranslate(language), 1500);
       return () => clearTimeout(t);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── MutationObserver: re-apply translation when new content arrives ────────
+  // FIXED: debounced + guarded to prevent Kannada double-rendering
   useEffect(() => {
     if (!language || language === 'en') return;
 
-    const observer = new MutationObserver(() => {
-      // Re-trigger translate whenever the DOM changes significantly
-      // (new news cards, lazy-loaded sections, etc.)
-      triggerGoogleTranslate(language);
+    let debounceTimer = null;
+    let translationApplied = false;
+
+    const observer = new MutationObserver((mutations) => {
+      // Only react to meaningful childList mutations (not attribute changes from GT itself)
+      const significant = mutations.some(m => m.type === 'childList' && m.addedNodes.length > 0);
+      if (!significant || translationApplied) return;
+
+      // Debounce: wait 500ms for DOM to settle before translating
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        translationApplied = true;
+        triggerGoogleTranslate(language);
+        // Reset flag after 2s to allow future re-translations for new content
+        setTimeout(() => { translationApplied = false; }, 2000);
+      }, 500);
     });
 
     observer.observe(document.getElementById('root') || document.body, {
@@ -89,7 +106,10 @@ export default function LanguageSwitcher() {
       subtree: true,
     });
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      clearTimeout(debounceTimer);
+    };
   }, [language]);
 
   // ── Close dropdown on outside click ───────────────────────────────────────
@@ -101,14 +121,46 @@ export default function LanguageSwitcher() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // ── Handle language selection ──────────────────────────────────────────────
+  // ── Handle language selection — NO window.location.reload() ───────────────
+  // FIXED: Instead of hard reload (which loses auth session state), we:
+  //   1. Save language to store (persisted in localStorage)
+  //   2. Set the googtrans cookie
+  //   3. Trigger Google Translate directly — no redirect needed
+  // ALSO FIXED: Using a ref to track pending language so the MutationObserver
+  // doesn't interfere with the language being applied
+  const pendingLang = useRef(null);
+
   const select = (lang) => {
     setLanguage(lang.code);
     setGoogleTranslateCookie(lang.gtCode);
     setOpen(false);
-    // Hard reload so the Loader animation plays and translation is fully applied
-    window.location.reload();
+    pendingLang.current = lang.gtCode;
+
+    if (lang.code === 'en') {
+      // Reset to English: remove cookie
+      document.cookie = 'googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = `googtrans=; path=/; domain=${window.location.hostname}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      window.location.replace(window.location.pathname + window.location.search);
+    } else {
+      // Trigger GT widget multiple times to ensure it applies the right language
+      // First attempt immediately
+      triggerGoogleTranslate(lang.gtCode);
+      // Second attempt after 800ms (in case GT widget was still loading)
+      setTimeout(() => {
+        if (pendingLang.current === lang.gtCode) {
+          triggerGoogleTranslate(lang.gtCode);
+        }
+      }, 800);
+      // Third attempt after 2s as final fallback
+      setTimeout(() => {
+        if (pendingLang.current === lang.gtCode) {
+          triggerGoogleTranslate(lang.gtCode);
+          pendingLang.current = null;
+        }
+      }, 2000);
+    }
   };
+
 
   return (
     <div ref={ref} style={{ position: 'relative', userSelect: 'none' }}>
@@ -130,7 +182,7 @@ export default function LanguageSwitcher() {
         }}
       >
         <span style={{ fontSize: 18 }}>{current.flag}</span>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0 }}>
+        <div className="lang-switcher-name" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0 }}>
           <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', lineHeight: 1 }}>
             {current.name}
           </span>

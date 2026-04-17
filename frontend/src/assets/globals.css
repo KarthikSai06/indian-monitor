@@ -441,3 +441,167 @@ body::before {
 }
 [data-theme="light"] .pill-tab { color: var(--text-secondary); }
 [data-theme="light"] .pill-tab.active { color: #1a1a2e; }
+
+/* ─── Google Translate Bar — prevent layout shift ─── */
+.goog-te-banner-frame { display: none !important; }
+body { top: 0 !important; }
+.skiptranslate { display: none !important; }
+
+/* ─── Responsive: Header ─── */
+@media (max-width: 640px) {
+  /* Compact header on mobile */
+  .live-badge {
+    font-size: 0.6rem;
+    padding: 3px 8px;
+  }
+}
+
+/* ─── Responsive: Navbar ─── */
+@media (max-width: 480px) {
+  /* Tighter nav tabs on small screens */
+  nav [style*="min-width: 90"] {
+    min-width: 60px !important;
+  }
+}
+
+/* ─── Responsive: Page layout ─── */
+@media (max-width: 768px) {
+  /* Stack sidebar-main layouts on mobile */
+  .page-with-sidebar {
+    flex-direction: column !important;
+  }
+  .page-sidebar {
+    width: 100% !important;
+    border-left: none !important;
+    border-top: 1px solid var(--glass-border);
+  }
+}
+
+/* ─── Responsive: Cards grid ─── */
+@media (max-width: 900px) {
+  /* GlobalEconomy: 2-col secondary charts stack to 1 */
+  #sec-macro {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Economy aside panel becomes bottom section on mobile */
+  aside[style*="width: 320"] {
+    width: 100% !important;
+    border-left: none !important;
+    border-top: 1px solid var(--glass-border);
+    max-height: 420px;
+    overflow-y: auto;
+  }
+
+  /* Reduce hero padding on mobile */
+  main[style*="padding: 24px 32px"] {
+    padding: 16px 14px !important;
+  }
+
+  /* Education page cards — single column on mobile */  
+  .education-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ─── Responsive: Modals ─── */
+@media (max-width: 540px) {
+  /* Settings modal full-width on mobile */
+  .card[style*="maxWidth: 480"] {
+    width: 96vw !important;
+    padding: 20px 16px !important;
+  }
+}
+
+/* ─── Responsive: LanguageSwitcher on very small screens ─── */
+@media (max-width: 400px) {
+  /* Show only flag on tiny screens */
+  .lang-switcher-name { display: none !important; }
+}
+
+/* ─── Responsive: Global Economy layout ─── */
+@media (max-width: 1024px) {
+  /* Main content takes full width */
+  div[style*="display: flex"][style*="flex: 1"][style*="overflow: hidden"] {
+    flex-direction: column;
+  }
+}
+
+/* ─── Responsive: Charts ─── */
+@media (max-width: 640px) {
+  /* Reduce chart height on mobile */
+  div[style*="height: 380"] {
+    height: 220px !important;
+  }
+  div[style*="height: 220"] {
+    height: 160px !important;
+  }
+}
+
+/* ─── Responsive: News/Education page ─── */
+@media (max-width: 768px) {
+  /* News filter tabs scroll horizontally */
+  .pill-tabs {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  /* News card grid becomes 1 column */
+  div[style*="grid-template-columns: repeat(3"] {
+    grid-template-columns: 1fr !important;
+  }
+  div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ─── Responsive: EducationPathways tree ─── */
+@media (max-width: 640px) {
+  /* Reduce max-height of tree explorer on mobile */
+  div[style*="maxHeight: 700"] {
+    max-height: 500px !important;
+  }
+  /* Compact quick filter chips  */
+  div[style*="flexWrap: wrap"][style*="gap: 6"] {
+    gap: 4px !important;
+  }
+}
+
+/* ─── Responsive: Floating buttons (Settings / About) ─── */
+@media (max-width: 480px) {
+  /* Move floating buttons to avoid navbar overlap */
+  button[style*="bottom: 76"][style*="right: 24"] {
+    bottom: 68px !important;
+    right: 12px !important;
+  }
+  button[style*="bottom: 24"][style*="right: 24"] {
+    bottom: 16px !important;
+    right: 12px !important;
+  }
+}
+
+/* ─── Responsive: Weather page ─── */
+@media (max-width: 768px) {
+  /* Weather cards — responsive grid */
+  .weather-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+@media (max-width: 480px) {
+  .weather-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ─── Touch-friendly tap targets ─── */
+@media (hover: none) and (pointer: coarse) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .pill-tab {
+    padding: 0.55rem 1.1rem;
+  }
+}
+

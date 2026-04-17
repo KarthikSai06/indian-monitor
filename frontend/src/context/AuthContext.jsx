@@ -5,6 +5,18 @@ const AuthContext = createContext(null);
 
 const API_BASE = '/api/auth';
 
+// ── User cache helpers — prevents flashing login page on reload ──────────────
+function getCachedUser() {
+  try {
+    const raw = localStorage.getItem('bm_user_cache');
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+function setCachedUser(user) {
+  if (user) localStorage.setItem('bm_user_cache', JSON.stringify(user));
+  else localStorage.removeItem('bm_user_cache');
+}
+
 // Helper: get stored auth token (set after cross-domain OAuth redirect)
 function getStoredToken() {
   return localStorage.getItem('bm_token') || null;
@@ -19,7 +31,8 @@ function authFetch(url, options = {}) {
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  // Initialize user from cache immediately — no loading flash on reload
+  const [user, setUser] = useState(() => getCachedUser());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -31,12 +44,15 @@ export function AuthProvider({ children }) {
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
+        setCachedUser(data.user);
       } else {
         setUser(null);
+        setCachedUser(null);
         localStorage.removeItem('bm_token');
       }
     } catch {
-      setUser(null);
+      // Network error — keep cached user if available (offline resilience)
+      // Don't clear the user; let them stay logged in if cached
     } finally {
       setLoading(false);
     }
@@ -76,6 +92,7 @@ export function AuthProvider({ children }) {
       // Store token if returned (for cross-domain auth)
       if (data.token) localStorage.setItem('bm_token', data.token);
       setUser(data.user);
+      setCachedUser(data.user);
       return data;
     } catch (err) {
       setError(err.message);
@@ -96,6 +113,7 @@ export function AuthProvider({ children }) {
       // Store token if returned (for cross-domain auth)
       if (data.token) localStorage.setItem('bm_token', data.token);
       setUser(data.user);
+      setCachedUser(data.user);
       return data;
     } catch (err) {
       setError(err.message);
@@ -110,6 +128,7 @@ export function AuthProvider({ children }) {
       // ignore
     }
     localStorage.removeItem('bm_token');
+    setCachedUser(null);
     setUser(null);
   };
 
@@ -125,6 +144,7 @@ export function AuthProvider({ children }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to set plan');
       setUser(data.user);
+      setCachedUser(data.user);
       return data;
     } catch (err) {
       setError(err.message);
@@ -144,6 +164,7 @@ export function AuthProvider({ children }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Update failed');
       setUser(data.user);
+      setCachedUser(data.user);
       return data;
     } catch (err) {
       setError(err.message);
