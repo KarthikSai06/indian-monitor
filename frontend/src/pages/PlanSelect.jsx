@@ -83,8 +83,10 @@ export default function PlanSelect() {
   return (
     <div style={{
       minHeight: '100vh', background: BG,
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      padding: '40px 20px', position: 'relative', overflow: 'hidden',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: 'flex-start',
+      padding: 'clamp(20px, 5vw, 40px) clamp(12px, 4vw, 20px)',
+      position: 'relative', overflowY: 'auto', overflowX: 'hidden',
     }}>
       {/* Theme toggle */}
       <motion.button
@@ -109,7 +111,7 @@ export default function PlanSelect() {
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 960, width: '100%' }}>
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ textAlign: 'center', marginBottom: 48 }}>
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ textAlign: 'center', marginBottom: 'clamp(24px, 4vw, 48px)', marginTop: 'clamp(40px, 6vw, 0px)' }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>🇮🇳</div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 5vw, 42px)', fontWeight: 800, color: TEXT1, margin: 0, lineHeight: 1.15 }}>
             Choose Your Plan
@@ -120,7 +122,7 @@ export default function PlanSelect() {
         </motion.div>
 
         {/* Plan Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24, marginBottom: 32 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 'clamp(16px, 3vw, 24px)', marginBottom: 32, width: '100%' }}>
 
           {/* ── Normal Plan ── */}
           <motion.div custom={0} variants={cardVariants} initial="hidden" animate="visible" style={{

@@ -148,8 +148,8 @@ function AnimatedRoutes() {
 function GateKeeper() {
   const { user, loading } = useAuth();
 
-  // While checking session, show a minimal spinner
-  if (loading) {
+  // While checking session BUT no cached user available, show a minimal spinner
+  if (loading && !user) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#07070f' }}>
         <motion.div
@@ -164,7 +164,7 @@ function GateKeeper() {
   // Not logged in → show landing page
   if (!user) return <LandingPage />;
 
-  // Logged in → show full app shell
+  // Logged in (or cached) → show full app shell
   return <AppShell />;
 }
 
