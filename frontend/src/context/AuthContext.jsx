@@ -116,10 +116,9 @@ export function AuthProvider({ children }) {
   const selectTier = async (tier) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/select-tier`, {
+      const res = await authFetch(`${API_BASE}/select-tier`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ tier }),
       });
       const data = await res.json();
@@ -135,10 +134,9 @@ export function AuthProvider({ children }) {
   const updateProfile = async (updates) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/profile`, {
+      const res = await authFetch(`${API_BASE}/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(updates),
       });
       const data = await res.json();
@@ -154,10 +152,9 @@ export function AuthProvider({ children }) {
   const changePassword = async (currentPassword, newPassword) => {
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/change-password`, {
+      const res = await authFetch(`${API_BASE}/change-password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       const data = await res.json();
