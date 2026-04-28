@@ -45,8 +45,11 @@ export function AuthProvider({ children }) {
 
   // Check if user is authenticated on mount
   const checkAuth = useCallback(async () => {
-    // Skip if we already have a user from an explicit action
-    if (authSetExplicitly.current) return;
+    // Skip if we already have a user set by an explicit login/signup action
+    if (authSetExplicitly.current) {
+      setLoading(false);
+      return;
+    }
 
     const tokenBefore = getStoredToken();
     try {
@@ -59,22 +62,19 @@ export function AuthProvider({ children }) {
         // Only clear user/token if no explicit auth has happened (signup/login)
         if (!authSetExplicitly.current) {
           setUser(null);
+          setCachedUser(null);
           if (getStoredToken() === tokenBefore) {
             localStorage.removeItem('bm_token');
           }
         }
       }
     } catch {
-<<<<<<< HEAD
       // Network error (e.g. Render cold start timeout) — do NOT clear user
       // if login/signup already authenticated them
       if (!authSetExplicitly.current) {
         setUser(null);
+        setCachedUser(null);
       }
-=======
-      // Network error — keep cached user if available (offline resilience)
-      // Don't clear the user; let them stay logged in if cached
->>>>>>> 1d613d95b0f67b11a74a047346461e87aecb1770
     } finally {
       setLoading(false);
     }
@@ -116,11 +116,8 @@ export function AuthProvider({ children }) {
       if (data.token) localStorage.setItem('bm_token', data.token);
       authSetExplicitly.current = true;
       setUser(data.user);
-<<<<<<< HEAD
-      setLoading(false);
-=======
       setCachedUser(data.user);
->>>>>>> 1d613d95b0f67b11a74a047346461e87aecb1770
+      setLoading(false);
       return data;
     } catch (err) {
       setError(err.message);
@@ -142,11 +139,8 @@ export function AuthProvider({ children }) {
       if (data.token) localStorage.setItem('bm_token', data.token);
       authSetExplicitly.current = true;
       setUser(data.user);
-<<<<<<< HEAD
-      setLoading(false);
-=======
       setCachedUser(data.user);
->>>>>>> 1d613d95b0f67b11a74a047346461e87aecb1770
+      setLoading(false);
       return data;
     } catch (err) {
       setError(err.message);
