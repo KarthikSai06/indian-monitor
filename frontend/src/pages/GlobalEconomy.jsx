@@ -29,8 +29,18 @@ const generateTrend = (base, points, volatility = 0.02) => {
 
 const COUNTRIES = ['All', 'USA', 'India', 'UK', 'Japan', 'China'];
 
-let _s = 73000, _sp = 5100, _ft = 7900, _nk = 39000;
-const _M = ['Nov, 2020', 'Dec, 2020', 'Jan, 2021', 'Feb, 2021', 'Mar, 2021', 'Apr, 2021', 'May, 2021', 'Jun, 2021', 'Jul, 2021'];
+// Generate last 9 months dynamically ending at current month
+const _generateMonthLabels = () => {
+  const now = new Date();
+  const labels = [];
+  for (let i = 8; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    labels.push(d.toLocaleString('en-US', { month: 'short', year: 'numeric' }));
+  }
+  return labels;
+};
+let _s = 78000, _sp = 5800, _ft = 8200, _nk = 40500;
+const _M = _generateMonthLabels();
 const TREND_DATA = Array.from({ length: 150 }, (_, i) => {
   _s += (Math.random() - 0.48) * 1200;
   _sp += (Math.random() - 0.48) * 80;
@@ -54,44 +64,44 @@ const SECTOR_DATA = [
 ];
 
 const INITIAL_INDEXES = [
-  { id: 'S&P 500', country: 'USA', val: 5123.45, pct: +0.65, history: generateTrend(5100, 20) },
-  { id: 'Nasdaq', country: 'USA', val: 16234.12, pct: +1.20, history: generateTrend(16000, 20) },
-  { id: 'Sensex', country: 'India', val: 73842.10, pct: +0.45, history: generateTrend(73000, 20) },
-  { id: 'Nifty', country: 'India', val: 22405.60, pct: +0.55, history: generateTrend(22000, 20) },
-  { id: 'FTSE 100', country: 'UK', val: 7890.30, pct: -0.25, history: generateTrend(7900, 20) },
-  { id: 'Nikkei 225', country: 'Japan', val: 39120.50, pct: +1.80, history: generateTrend(38000, 20) },
-  { id: 'Shanghai', country: 'China', val: 3045.20, pct: -0.15, history: generateTrend(3050, 20) },
+  { id: 'S&P 500', country: 'USA', val: 5845.20, pct: +0.52, history: generateTrend(5800, 20) },
+  { id: 'Nasdaq', country: 'USA', val: 18420.75, pct: +0.95, history: generateTrend(18200, 20) },
+  { id: 'Sensex', country: 'India', val: 78534.60, pct: +0.38, history: generateTrend(78000, 20) },
+  { id: 'Nifty', country: 'India', val: 23685.40, pct: +0.42, history: generateTrend(23500, 20) },
+  { id: 'FTSE 100', country: 'UK', val: 8245.80, pct: -0.18, history: generateTrend(8200, 20) },
+  { id: 'Nikkei 225', country: 'Japan', val: 41250.30, pct: +1.15, history: generateTrend(40500, 20) },
+  { id: 'Shanghai', country: 'China', val: 3185.40, pct: +0.22, history: generateTrend(3150, 20) },
 ];
 
 const COMMODITIES = [
-  { id: 'Gold (XAU)', val: 2154.30, pct: +0.40, unit: 'USD/oz', history: generateTrend(2150, 20) },
-  { id: 'Brent Crude', val: 84.60, pct: +1.10, unit: 'USD/bbl', history: generateTrend(83, 20) },
-  { id: 'Nat Gas', val: 1.85, pct: -2.30, unit: 'USD/MMBtu', history: generateTrend(1.9, 20) },
+  { id: 'Gold (XAU)', val: 2385.60, pct: +0.55, unit: 'USD/oz', history: generateTrend(2380, 20) },
+  { id: 'Brent Crude', val: 88.40, pct: +0.85, unit: 'USD/bbl', history: generateTrend(87, 20) },
+  { id: 'Nat Gas', val: 2.15, pct: -1.80, unit: 'USD/MMBtu', history: generateTrend(2.2, 20) },
 ];
 
 const CURRENCIES = [
-  { id: 'INR', flag: '🇮🇳', name: 'Indian Rupee',      val: 83.42,   pct: -0.12 },
-  { id: 'EUR', flag: '🇪🇺', name: 'Euro',               val: 0.9215,  pct: +0.08 },
-  { id: 'GBP', flag: '🇬🇧', name: 'British Pound',      val: 0.7892,  pct: +0.15 },
-  { id: 'JPY', flag: '🇯🇵', name: 'Japanese Yen',       val: 151.62,  pct: -0.31 },
-  { id: 'CNY', flag: '🇨🇳', name: 'Chinese Yuan',       val: 7.2415,  pct: -0.05 },
-  { id: 'CHF', flag: '🇨🇭', name: 'Swiss Franc',        val: 0.9014,  pct: +0.20 },
-  { id: 'CAD', flag: '🇨🇦', name: 'Canadian Dollar',    val: 1.3612,  pct: -0.09 },
-  { id: 'AUD', flag: '🇦🇺', name: 'Australian Dollar',  val: 1.5430,  pct: +0.18 },
-  { id: 'SGD', flag: '🇸🇬', name: 'Singapore Dollar',   val: 1.3480,  pct: +0.07 },
+  { id: 'INR', flag: '🇮🇳', name: 'Indian Rupee',      val: 86.75,   pct: -0.08 },
+  { id: 'EUR', flag: '🇪🇺', name: 'Euro',               val: 0.8815,  pct: +0.12 },
+  { id: 'GBP', flag: '🇬🇧', name: 'British Pound',      val: 0.7620,  pct: +0.18 },
+  { id: 'JPY', flag: '🇯🇵', name: 'Japanese Yen',       val: 155.30,  pct: -0.25 },
+  { id: 'CNY', flag: '🇨🇳', name: 'Chinese Yuan',       val: 7.2950,  pct: -0.03 },
+  { id: 'CHF', flag: '🇨🇭', name: 'Swiss Franc',        val: 0.8640,  pct: +0.15 },
+  { id: 'CAD', flag: '🇨🇦', name: 'Canadian Dollar',    val: 1.3890,  pct: -0.06 },
+  { id: 'AUD', flag: '🇦🇺', name: 'Australian Dollar',  val: 1.5680,  pct: +0.11 },
+  { id: 'SGD', flag: '🇸🇬', name: 'Singapore Dollar',   val: 1.3250,  pct: +0.05 },
   { id: 'AED', flag: '🇦🇪', name: 'UAE Dirham',         val: 3.6725,  pct: 0.00  },
   { id: 'SAR', flag: '🇸🇦', name: 'Saudi Riyal',        val: 3.7502,  pct: 0.00  },
-  { id: 'BRL', flag: '🇧🇷', name: 'Brazilian Real',     val: 4.9720,  pct: -0.55 },
-  { id: 'KRW', flag: '🇰🇷', name: 'South Korean Won',   val: 1330.5,  pct: -0.22 },
-  { id: 'MXN', flag: '🇲🇽', name: 'Mexican Peso',       val: 17.045,  pct: +0.34 },
+  { id: 'BRL', flag: '🇧🇷', name: 'Brazilian Real',     val: 5.1240,  pct: -0.42 },
+  { id: 'KRW', flag: '🇰🇷', name: 'South Korean Won',   val: 1385.2,  pct: -0.18 },
+  { id: 'MXN', flag: '🇲🇽', name: 'Mexican Peso',       val: 17.520,  pct: +0.28 },
 ];
 
 const ECONOMIC_INDICATORS = [
-  { country: 'USA', gdp: '2.5%', inf: '3.1%', rate: '5.50%', unemp: '3.8%' },
-  { country: 'India', gdp: '7.6%', inf: '5.1%', rate: '6.50%', unemp: '7.1%' },
-  { country: 'UK', gdp: '-0.2%', inf: '4.0%', rate: '5.25%', unemp: '3.9%' },
-  { country: 'Japan', gdp: '1.9%', inf: '2.2%', rate: '-0.10%', unemp: '2.4%' },
-  { country: 'China', gdp: '5.2%', inf: '-0.8%', rate: '3.45%', unemp: '5.2%' },
+  { country: 'USA', gdp: '2.1%', inf: '2.6%', rate: '4.75%', unemp: '4.1%' },
+  { country: 'India', gdp: '6.8%', inf: '4.5%', rate: '6.25%', unemp: '6.8%' },
+  { country: 'UK', gdp: '1.2%', inf: '2.8%', rate: '4.50%', unemp: '4.2%' },
+  { country: 'Japan', gdp: '1.5%', inf: '2.8%', rate: '0.25%', unemp: '2.5%' },
+  { country: 'China', gdp: '4.8%', inf: '0.4%', rate: '3.10%', unemp: '5.1%' },
 ];
 
 // --- COMPONENTS --- //
