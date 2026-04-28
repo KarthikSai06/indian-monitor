@@ -74,23 +74,7 @@ export default function LanguageSwitcher() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── MutationObserver: re-apply translation when new content arrives ────────
-  useEffect(() => {
-    if (!language || language === 'en') return;
 
-    const observer = new MutationObserver(() => {
-      // Re-trigger translate whenever the DOM changes significantly
-      // (new news cards, lazy-loaded sections, etc.)
-      triggerGoogleTranslate(language);
-    });
-
-    observer.observe(document.getElementById('root') || document.body, {
-      childList: true,
-      subtree: true,
-    });
-
-    return () => observer.disconnect();
-  }, [language]);
 
   // ── Close dropdown on outside click ───────────────────────────────────────
   useEffect(() => {

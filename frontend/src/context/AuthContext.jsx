@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext(null);
 
-const API_BASE = '/api/auth';
+const isProd = import.meta.env.PROD;
+const defaultBackend = isProd ? 'https://indian-monitor.onrender.com' : 'http://localhost:3001';
+const backendURL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || defaultBackend;
+const API_BASE = `${backendURL}/api/auth`;
 
 // Helper: get stored auth token (set after cross-domain OAuth redirect)
 function getStoredToken() {
@@ -26,6 +29,7 @@ export function AuthProvider({ children }) {
 
   // Check if user is authenticated on mount
   const checkAuth = useCallback(async () => {
+    const tokenBefore = getStoredToken();
     try {
       const res = await authFetch(`${API_BASE}/me`);
       if (res.ok) {
@@ -33,7 +37,10 @@ export function AuthProvider({ children }) {
         setUser(data.user);
       } else {
         setUser(null);
-        localStorage.removeItem('bm_token');
+        // Prevent race condition: only remove if the token hasn't changed while request was in flight
+        if (getStoredToken() === tokenBefore) {
+          localStorage.removeItem('bm_token');
+        }
       }
     } catch {
       setUser(null);
