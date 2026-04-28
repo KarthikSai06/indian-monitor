@@ -45,21 +45,16 @@ export function AuthProvider({ children }) {
 
   // Check if user is authenticated on mount
   const checkAuth = useCallback(async () => {
-    // Skip if we already have a user set by an explicit login/signup action
-    if (authSetExplicitly.current) {
-      setLoading(false);
-      return;
-    }
-
     const tokenBefore = getStoredToken();
     try {
       const res = await authFetch(`${API_BASE}/me`);
       if (res.ok) {
         const data = await res.json();
+        authSetExplicitly.current = true; // verified session
         setUser(data.user);
         setCachedUser(data.user);
       } else {
-        // Only clear user/token if no explicit auth has happened (signup/login)
+        // Only clear if not explicitly authenticated and no cached user
         if (!authSetExplicitly.current) {
           setUser(null);
           setCachedUser(null);
@@ -69,11 +64,10 @@ export function AuthProvider({ children }) {
         }
       }
     } catch {
-      // Network error (e.g. Render cold start timeout) — do NOT clear user
-      // if login/signup already authenticated them
-      if (!authSetExplicitly.current) {
+      // Network error (Render cold start / offline) — preserve cached user
+      // so language-switcher reload or cold-start doesn't log the user out
+      if (!authSetExplicitly.current && !getCachedUser()) {
         setUser(null);
-        setCachedUser(null);
       }
     } finally {
       setLoading(false);
