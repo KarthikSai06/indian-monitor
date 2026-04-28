@@ -78,39 +78,7 @@ export default function LanguageSwitcher() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── MutationObserver: re-apply translation when new content arrives ────────
-  // FIXED: debounced + guarded to prevent Kannada double-rendering
-  useEffect(() => {
-    if (!language || language === 'en') return;
 
-    let debounceTimer = null;
-    let translationApplied = false;
-
-    const observer = new MutationObserver((mutations) => {
-      // Only react to meaningful childList mutations (not attribute changes from GT itself)
-      const significant = mutations.some(m => m.type === 'childList' && m.addedNodes.length > 0);
-      if (!significant || translationApplied) return;
-
-      // Debounce: wait 500ms for DOM to settle before translating
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        translationApplied = true;
-        triggerGoogleTranslate(language);
-        // Reset flag after 2s to allow future re-translations for new content
-        setTimeout(() => { translationApplied = false; }, 2000);
-      }, 500);
-    });
-
-    observer.observe(document.getElementById('root') || document.body, {
-      childList: true,
-      subtree: true,
-    });
-
-    return () => {
-      observer.disconnect();
-      clearTimeout(debounceTimer);
-    };
-  }, [language]);
 
   // ── Close dropdown on outside click ───────────────────────────────────────
   useEffect(() => {
