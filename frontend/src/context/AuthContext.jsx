@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext(null);
@@ -27,8 +27,14 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // Track whether auth was explicitly set by login/signup (not just checkAuth)
+  const authSetExplicitly = useRef(false);
+
   // Check if user is authenticated on mount
   const checkAuth = useCallback(async () => {
+    // Skip if we already have a user from an explicit action
+    if (authSetExplicitly.current) return;
+
     const tokenBefore = getStoredToken();
     try {
       const res = await authFetch(`${API_BASE}/me`);
@@ -36,14 +42,20 @@ export function AuthProvider({ children }) {
         const data = await res.json();
         setUser(data.user);
       } else {
-        setUser(null);
-        // Prevent race condition: only remove if the token hasn't changed while request was in flight
-        if (getStoredToken() === tokenBefore) {
-          localStorage.removeItem('bm_token');
+        // Only clear user/token if no explicit auth has happened (signup/login)
+        if (!authSetExplicitly.current) {
+          setUser(null);
+          if (getStoredToken() === tokenBefore) {
+            localStorage.removeItem('bm_token');
+          }
         }
       }
     } catch {
-      setUser(null);
+      // Network error (e.g. Render cold start timeout) — do NOT clear user
+      // if login/signup already authenticated them
+      if (!authSetExplicitly.current) {
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -61,6 +73,7 @@ export function AuthProvider({ children }) {
       const urlToken = params.get('token');
       if (urlToken) {
         localStorage.setItem('bm_token', urlToken);
+        authSetExplicitly.current = true;
       }
       // Clean URL (remove ?auth=success&token=...)
       window.history.replaceState({}, '', window.location.pathname);
@@ -82,7 +95,9 @@ export function AuthProvider({ children }) {
       if (!res.ok) throw new Error(data.error || 'Signup failed');
       // Store token if returned (for cross-domain auth)
       if (data.token) localStorage.setItem('bm_token', data.token);
+      authSetExplicitly.current = true;
       setUser(data.user);
+      setLoading(false);
       return data;
     } catch (err) {
       setError(err.message);
@@ -102,7 +117,9 @@ export function AuthProvider({ children }) {
       if (!res.ok) throw new Error(data.error || 'Login failed');
       // Store token if returned (for cross-domain auth)
       if (data.token) localStorage.setItem('bm_token', data.token);
+      authSetExplicitly.current = true;
       setUser(data.user);
+      setLoading(false);
       return data;
     } catch (err) {
       setError(err.message);
@@ -111,6 +128,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+    authSetExplicitly.current = false;
     try {
       await authFetch(`${API_BASE}/logout`, { method: 'POST' });
     } catch {
@@ -123,6 +141,8 @@ export function AuthProvider({ children }) {
   const selectTier = async (tier) => {
     setError(null);
     try {
+      const token = getStoredToken();
+      console.log('[selectTier] token present:', !!token, 'tier:', tier);
       const res = await authFetch(`${API_BASE}/select-tier`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -175,9 +195,6 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = () => {
     // Navigate directly to backend server — OAuth redirects don't work through Vite proxy
-    const isProd = import.meta.env.PROD;
-    const defaultBackend = isProd ? 'https://indian-monitor.onrender.com' : 'http://localhost:3001';
-    const backendURL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || defaultBackend;
     window.location.href = `${backendURL}/api/auth/google`;
   };
 
@@ -212,4 +229,3 @@ export function useAuth() {
 }
 
 export default AuthContext;
-
