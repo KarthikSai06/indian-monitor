@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useStore from '../../store/useStore';
 
@@ -70,12 +70,22 @@ export default function LanguageSwitcher() {
   const ref = useRef(null);
   const current = LANGUAGES.find((l) => l.code === language) || LANGUAGES[0];
 
-  // ── Restore saved language on first mount ──────────────────────────────────
+  // ── Restore saved language after page reload ─────────────────────────────
+  // Poll aggressively for the GT widget (up to 10s) since load time varies
   useEffect(() => {
-    if (language && language !== 'en') {
-      const t = setTimeout(() => triggerGoogleTranslate(language), 1500);
-      return () => clearTimeout(t);
-    }
+    if (!language || language === 'en') return;
+    let tries = 0;
+    const iv = setInterval(() => {
+      const combo = document.querySelector('.goog-te-combo');
+      if (combo) {
+        combo.value = language;
+        combo.dispatchEvent(new Event('change', { bubbles: true }));
+        clearInterval(iv);
+      } else if (++tries >= 100) {
+        clearInterval(iv); // give up after 10s
+      }
+    }, 100);
+    return () => clearInterval(iv);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 
@@ -89,44 +99,25 @@ export default function LanguageSwitcher() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // ── Handle language selection — NO window.location.reload() ───────────────
-  // FIXED: Instead of hard reload (which loses auth session state), we:
-  //   1. Save language to store (persisted in localStorage)
-  //   2. Set the googtrans cookie
-  //   3. Trigger Google Translate directly — no redirect needed
-  // ALSO FIXED: Using a ref to track pending language so the MutationObserver
-  // doesn't interfere with the language being applied
-  const pendingLang = useRef(null);
-
+  // ── Handle language selection ─────────────────────────────────────────────
+  // Set cookie + store language, then reload the page.
+  // The user stays logged in because bm_token and bm_user_cache persist.
   const select = (lang) => {
     setLanguage(lang.code);
-    setGoogleTranslateCookie(lang.gtCode);
     setOpen(false);
-    pendingLang.current = lang.gtCode;
 
     if (lang.code === 'en') {
-      // Reset to English: remove cookie
+      // Clear Google Translate cookies to revert to English
       document.cookie = 'googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
       document.cookie = `googtrans=; path=/; domain=${window.location.hostname}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-      window.location.replace(window.location.pathname + window.location.search);
     } else {
-      // Trigger GT widget multiple times to ensure it applies the right language
-      // First attempt immediately
-      triggerGoogleTranslate(lang.gtCode);
-      // Second attempt after 800ms (in case GT widget was still loading)
-      setTimeout(() => {
-        if (pendingLang.current === lang.gtCode) {
-          triggerGoogleTranslate(lang.gtCode);
-        }
-      }, 800);
-      // Third attempt after 2s as final fallback
-      setTimeout(() => {
-        if (pendingLang.current === lang.gtCode) {
-          triggerGoogleTranslate(lang.gtCode);
-          pendingLang.current = null;
-        }
-      }, 2000);
+      // Set the translation cookie before reload
+      setGoogleTranslateCookie(lang.gtCode);
     }
+
+    // Reload so Google Translate initializes with the correct cookie.
+    // Auth is preserved via localStorage (bm_token + bm_user_cache).
+    window.location.reload();
   };
 
 
